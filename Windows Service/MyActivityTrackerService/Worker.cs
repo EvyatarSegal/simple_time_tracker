@@ -16,7 +16,8 @@ namespace ActivityTrackerService
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
-        private static readonly string ConnectionString = "Server=(localdb)\\MSSQLLocalDB;Database=TimeTrackerDB;Integrated Security=True;TrustServerCertificate=True;";
+        // IMPORTANT: Update this line with your actual SQL Server Login username and password
+        private static readonly string ConnectionString = "Server=(localdb)\\MSSQLLocalDB;Database=TimeTrackerDB;User ID=ActivityTrackerAppUser;Password=0542;TrustServerCertificate=True;";
         private string _lastActiveWindow = "";
 
         public Worker(ILogger<Worker> logger)
@@ -417,25 +418,23 @@ namespace ActivityTrackerService
                 monitorInfo.WindowRect = windowRect;
                 monitorInfo.IsWindowOnAnyMonitor = false;
 
-                // Use a lambda that captures the monitorInfo variable
-                bool result = EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, 
-                    (hMonitor, hdcMonitor, lprcMonitor, dwData) => 
-                    {
-                        RECT monitorRect = Marshal.PtrToStructure<RECT>(lprcMonitor);
-                        RECT intersection = new RECT();
-
-                        if (IntersectRect(out intersection, ref monitorRect, ref windowRect))
-                        {
-                            monitorInfo.IsWindowOnAnyMonitor = true;
-                            return false; // Stop enumeration
-                        }
-                        return true; // Continue enumeration
-                    }, 
-                    IntPtr.Zero);
-
-                if (!monitorInfo.IsWindowOnAnyMonitor)
+                // Allocate GCHandle to pass MonitorInfo to the callback
+                GCHandle handle = GCHandle.Alloc(monitorInfo);
+                try
                 {
-                    return false;
+                    IntPtr monitorInfoPtr = GCHandle.ToIntPtr(handle);
+
+                    // Use the proper callback method
+                    bool result = EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, MonitorEnumProc, monitorInfoPtr);
+
+                    if (!monitorInfo.IsWindowOnAnyMonitor)
+                    {
+                        return false;
+                    }
+                }
+                finally
+                {
+                    handle.Free();
                 }
 
                 IntPtr windowRegion = CreateRectRgn(windowRect.Left, windowRect.Top, windowRect.Right, windowRect.Bottom);
@@ -469,6 +468,34 @@ namespace ActivityTrackerService
             {
                 _logger.LogError(ex, $"Error in IsWindowTrulyVisible for window {hWnd}.");
                 return false;
+            }
+        }
+
+        // Static callback method for EnumDisplayMonitors
+        private static bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdcMonitor, IntPtr lprcMonitor, IntPtr dwData)
+        {
+            try
+            {
+                // Retrieve the MonitorInfo object from the GCHandle
+                GCHandle handle = GCHandle.FromIntPtr(dwData);
+                MonitorInfo monitorInfo = (MonitorInfo)handle.Target;
+
+                // Marshal the monitor rectangle
+                RECT monitorRect = Marshal.PtrToStructure<RECT>(lprcMonitor);
+                RECT intersection = new RECT();
+
+                // Check if the window intersects with this monitor
+                if (IntersectRect(out intersection, ref monitorRect, ref monitorInfo.WindowRect))
+                {
+                    monitorInfo.IsWindowOnAnyMonitor = true;
+                    return false; // Stop enumeration - we found an intersection
+                }
+
+                return true; // Continue enumeration
+            }
+            catch
+            {
+                return false; // Stop enumeration on error
             }
         }
 
@@ -584,6 +611,9 @@ namespace ActivityTrackerService
             return hWnd == GetDesktopWindow() || hWnd == GetShellWindow();
         }
 
+        // Define the delegate type for EnumDisplayMonitors callback
+        public delegate bool MonitorEnumProcDelegate(IntPtr hMonitor, IntPtr hdcMonitor, IntPtr lprcMonitor, IntPtr dwData);
+
         // Windows API P/Invoke declarations
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
@@ -607,8 +637,8 @@ namespace ActivityTrackerService
         private static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
 
         [DllImport("user32.dll")]
-        private static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, 
-            Func<IntPtr, IntPtr, IntPtr, IntPtr, bool> lpfnEnum, IntPtr dwData);
+        private static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip,
+            MonitorEnumProcDelegate lpfnEnum, IntPtr dwData);
 
         [DllImport("gdi32.dll")]
         private static extern IntPtr CreateRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect);
