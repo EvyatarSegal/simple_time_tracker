@@ -1,0 +1,13 @@
+Timestamp, Process Name, Window Title, Memory Usage (MB), CPU Usage (%), Process Audio Level, IsActive, IsVisible
+23/06/2025 21:45:04, Code, Program.cs - Console App - Visual Studio Code, 175.79, 0.00, 0, True, True
+23/06/2025 21:45:13, chrome, ?Google Gemini - Google Chrome?, 425.27, 0.00, 0, True, True
+23/06/2025 21:45:16, Spotify, Spotify, 1303.36, 0.00, 1, False, False
+23/06/2025 21:45:16, voicemeeter, voicemeeter, 101.28, 1.04, 1, False, False
+23/06/2025 21:45:16, VoicemeeterMacroButtons, VoicemeeterMacroButtons, 46.95, 0.00, 0, False, False
+23/06/2025 21:45:16, EpicGamesLauncher, EpicGamesLauncher, 511.00, 0.00, 0, False, False
+23/06/2025 21:45:16, chrome, chrome, 7444.00, 8.34, 0, False, True
+23/06/2025 21:45:16, Code, Code, 1485.68, 0.00, 0, True, True
+23/06/2025 21:45:16, GitHubDesktop, GitHubDesktop, 508.50, 0.00, 0, False, False
+23/06/2025 21:45:46, chrome, ?FE Heroes Asset Collection - Main Asset Collection - Google Chrome?, 427.19, 0.00, 0, True, True
+23/06/2025 21:45:48, chrome, ?Klokinator/FE-Repo-Music: A sister repository for the FEGBA Graphics Repo focusing on music preview files only. - Google Chrome?, 431.08, 2.10, 0, True, True
+23/06/2025 21:45:57, Code, Program.cs - Console App - Visual Studio Code, 175.43, 0.00, 0, True, True
