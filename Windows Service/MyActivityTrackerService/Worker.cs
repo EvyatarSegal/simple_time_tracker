@@ -412,12 +412,25 @@ namespace ActivityTrackerService
                     return false;
                 }
 
+                // Create a MonitorInfo instance to track the result
                 MonitorInfo monitorInfo = new MonitorInfo();
                 monitorInfo.WindowRect = windowRect;
                 monitorInfo.IsWindowOnAnyMonitor = false;
 
-                EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, 
-                    (hMonitor, hdcMonitor, lprcMonitor, dwData) => MonitorEnumProc(hMonitor, hdcMonitor, lprcMonitor, ref monitorInfo), 
+                // Use a lambda that captures the monitorInfo variable
+                bool result = EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, 
+                    (hMonitor, hdcMonitor, lprcMonitor, dwData) => 
+                    {
+                        RECT monitorRect = Marshal.PtrToStructure<RECT>(lprcMonitor);
+                        RECT intersection = new RECT();
+
+                        if (IntersectRect(out intersection, ref monitorRect, ref windowRect))
+                        {
+                            monitorInfo.IsWindowOnAnyMonitor = true;
+                            return false; // Stop enumeration
+                        }
+                        return true; // Continue enumeration
+                    }, 
                     IntPtr.Zero);
 
                 if (!monitorInfo.IsWindowOnAnyMonitor)
@@ -463,21 +476,6 @@ namespace ActivityTrackerService
         {
             public RECT WindowRect;
             public bool IsWindowOnAnyMonitor;
-        }
-
-        private static bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdcMonitor, IntPtr lprcMonitor, ref MonitorInfo dwData)
-        {
-            RECT monitorRect = Marshal.PtrToStructure<RECT>(lprcMonitor);
-            RECT windowRect = dwData.WindowRect;
-            RECT intersection = new RECT();
-
-            if (IntersectRect(out intersection, ref monitorRect, ref windowRect))
-            {
-                dwData.IsWindowOnAnyMonitor = true;
-                return false;
-            }
-
-            return true;
         }
 
         private IntPtr GetVisibleRegion(IntPtr hWnd)
@@ -609,7 +607,8 @@ namespace ActivityTrackerService
         private static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
 
         [DllImport("user32.dll")]
-        private static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, MonitorEnumProc lpfnEnum, IntPtr dwData);
+        private static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, 
+            Func<IntPtr, IntPtr, IntPtr, IntPtr, bool> lpfnEnum, IntPtr dwData);
 
         [DllImport("gdi32.dll")]
         private static extern IntPtr CreateRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect);
@@ -698,8 +697,6 @@ namespace ActivityTrackerService
             RGN_DIFF = 4,
             RGN_COPY = 5
         }
-
-        private delegate bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdcMonitor, IntPtr lprcMonitor, IntPtr dwData);
 
         private const int DWMWA_CLOAKED = 14;
 

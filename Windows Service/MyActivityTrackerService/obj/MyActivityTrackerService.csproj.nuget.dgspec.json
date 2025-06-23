@@ -59,6 +59,10 @@
               "target": "Package",
               "version": "[9.0.6, )"
             },
+            "Microsoft.Extensions.Hosting.WindowsServices": {
+              "target": "Package",
+              "version": "[9.0.6, )"
+            },
             "NAudio": {
               "target": "Package",
               "version": "[2.2.1, )"

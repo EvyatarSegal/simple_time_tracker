@@ -1,7 +1,7 @@
-using ActivityTrackerService; // Namespace of your worker service
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting.WindowsServices;
 
 namespace ActivityTrackerService
 {
@@ -18,6 +18,12 @@ namespace ActivityTrackerService
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddHostedService<Worker>(); // Register your Worker as a hosted service
+                })
+                .ConfigureLogging(logging =>
+                {
+                    logging.ClearProviders();
+                    logging.AddConsole();
+                    logging.AddEventLog(); // Add Windows Event Log for service logging
                 });
     }
 }

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "k8de7Jl5NLc=",
+  "dgSpecHash": "SiMV5JCzFV0=",
   "success": true,
   "projectFilePath": "D:\\Users\\evyat\\Documents\\Github\\simple_time_tracker\\Windows Service\\MyActivityTrackerService\\MyActivityTrackerService.csproj",
   "expectedPackageFiles": [
@@ -30,6 +30,7 @@
     "C:\\Users\\evyat\\.nuget\\packages\\microsoft.extensions.filesystemglobbing\\9.0.6\\microsoft.extensions.filesystemglobbing.9.0.6.nupkg.sha512",
     "C:\\Users\\evyat\\.nuget\\packages\\microsoft.extensions.hosting\\9.0.6\\microsoft.extensions.hosting.9.0.6.nupkg.sha512",
     "C:\\Users\\evyat\\.nuget\\packages\\microsoft.extensions.hosting.abstractions\\9.0.6\\microsoft.extensions.hosting.abstractions.9.0.6.nupkg.sha512",
+    "C:\\Users\\evyat\\.nuget\\packages\\microsoft.extensions.hosting.windowsservices\\9.0.6\\microsoft.extensions.hosting.windowsservices.9.0.6.nupkg.sha512",
     "C:\\Users\\evyat\\.nuget\\packages\\microsoft.extensions.logging\\9.0.6\\microsoft.extensions.logging.9.0.6.nupkg.sha512",
     "C:\\Users\\evyat\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\9.0.6\\microsoft.extensions.logging.abstractions.9.0.6.nupkg.sha512",
     "C:\\Users\\evyat\\.nuget\\packages\\microsoft.extensions.logging.configuration\\9.0.6\\microsoft.extensions.logging.configuration.9.0.6.nupkg.sha512",
@@ -82,6 +83,7 @@
     "C:\\Users\\evyat\\.nuget\\packages\\system.security.cryptography.pkcs\\9.0.4\\system.security.cryptography.pkcs.9.0.4.nupkg.sha512",
     "C:\\Users\\evyat\\.nuget\\packages\\system.security.cryptography.protecteddata\\9.0.6\\system.security.cryptography.protecteddata.9.0.6.nupkg.sha512",
     "C:\\Users\\evyat\\.nuget\\packages\\system.security.principal.windows\\5.0.0\\system.security.principal.windows.5.0.0.nupkg.sha512",
+    "C:\\Users\\evyat\\.nuget\\packages\\system.serviceprocess.servicecontroller\\9.0.6\\system.serviceprocess.servicecontroller.9.0.6.nupkg.sha512",
     "C:\\Users\\evyat\\.nuget\\packages\\system.text.encodings.web\\7.0.0\\system.text.encodings.web.7.0.0.nupkg.sha512",
     "C:\\Users\\evyat\\.nuget\\packages\\system.text.json\\7.0.0\\system.text.json.7.0.0.nupkg.sha512",
     "C:\\Users\\evyat\\.nuget\\packages\\system.threading.tasks.extensions\\4.5.4\\system.threading.tasks.extensions.4.5.4.nupkg.sha512",
