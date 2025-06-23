@@ -12,17 +12,23 @@ using System.Threading.Tasks;
 using NAudio.CoreAudioApi;
 using static Vanara.PInvoke.Gdi32;
 using static Vanara.PInvoke.Kernel32;
+using Microsoft.Data.SqlClient;
+
 
 class Program
 {
-    private static readonly string LogFilePath = "activity_log.txt";
+    // Connection string for your SQL Server LocalDB instance
+    // Replace '(localdb)\\MSSQLLocalDB' if your instance name is different
+    private static readonly string ConnectionString = "Server=(localdb)\\MSSQLLocalDB;Database=TimeTrackerDB;Integrated Security=True;TrustServerCertificate=True;";
+    // private static readonly string LogFilePath = "activity_log.txt"; // REMOVED: No longer logging to file
     private static string _lastActiveWindow = "";
     private static readonly CancellationTokenSource Cts = new CancellationTokenSource();
 
     static async Task Main(string[] args)
     {
         Console.WriteLine("Activity Tracker Service Started...");
-        InitializeLogFile();
+
+        // InitializeLogFile(); // REMOVED: No longer logging to file
 
         Task windowTrackingTask = StartActiveWindowTracking(Cts.Token);
         Task resourceMonitoringTask = StartResourceMonitoring(Cts.Token);
@@ -34,14 +40,6 @@ class Program
         await Task.WhenAll(windowTrackingTask, resourceMonitoringTask);
 
         Console.WriteLine("Activity Tracker Stopped.");
-    }
-
-    private static void InitializeLogFile()
-    {
-        if (!File.Exists(LogFilePath))
-        {
-            File.WriteAllText(LogFilePath, "Timestamp, Process Name, Window Title, Memory Usage (MB), CPU Usage (%), Process Audio Level, IsActive, IsVisible\n");
-        }
     }
 
     private static async Task StartActiveWindowTracking(CancellationToken token)
@@ -62,6 +60,10 @@ class Program
         catch (TaskCanceledException)
         {
             Console.WriteLine("[INFO] Active window tracking stopped.");
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error in StartActiveWindowTracking: {ex.Message}");
         }
     }
 
@@ -94,42 +96,25 @@ class Program
             memoryUsageMB = process.WorkingSet64 / (1024f * 1024f);
             cpuUsagePercentage = GetCpuUsage(process);
         }
-        catch (Exception) { }
-
-        string logEntry = $"{DateTime.Now}, {processName}, {windowTitle}, {memoryUsageMB:F2}, {cpuUsagePercentage:F2}, {audioLevel}, {isActive}, {isVisible}\n";
-
-        int retryCount = 3;
-        while (retryCount > 0)
+        catch (Exception)
         {
-            try
-            {
-                await File.AppendAllTextAsync(LogFilePath, logEntry);
-                Console.WriteLine("###############################");
-                Console.WriteLine($"Process: {processName}, Mb:{memoryUsageMB:F2}, CPU:{cpuUsagePercentage:F2}, Audio:{audioLevel}, Active:{isActive}, Visible:{isVisible}");
-                return;
-            }
-            catch (IOException ex)
-            {
-                if (IsFileLocked(ex))
-                {
-                    retryCount--;
-                    Console.WriteLine($"Log file locked. Retrying in 1 second... (Retries left: {retryCount})");
-                    await Task.Delay(1000);
-                }
-                else
-                {
-                    Console.WriteLine($"Error writing to log file: {ex.Message}");
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error writing to log file: {ex.Message}");
-                return;
-            }
+            // Ignore if process not found or other issues during resource fetching for this process
         }
 
-        Console.WriteLine($"Failed to write to log file after multiple retries.");
+        // Log to database
+        await LogActivityToDatabase(
+            DateTime.UtcNow, // Use UtcNow for consistency
+            processName,
+            windowTitle,
+            memoryUsageMB,
+            cpuUsagePercentage,
+            audioLevel,
+            isActive,
+            isCloaked: IsCloaked(hwnd) // Check cloaked status for the window
+        );
+
+        Console.WriteLine("###############################");
+        Console.WriteLine($"Process: {processName}, Mb:{memoryUsageMB:F2}, CPU:{cpuUsagePercentage:F2}, Audio:{audioLevel}, Active:{isActive}, Visible:{isVisible}");
     }
 
     private static string GetActiveProcessName()
@@ -153,12 +138,16 @@ class Program
             while (!token.IsCancellationRequested)
             {
                 await CheckResourceUsage();
-                await Task.Delay(5 * 60 * 1000, token);
+                await Task.Delay(5 * 60 * 1000, token); // Log every 5 minutes
             }
         }
         catch (TaskCanceledException)
         {
             Console.WriteLine("[INFO] Resource monitoring stopped.");
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error in StartResourceMonitoring: {ex.Message}");
         }
     }
 
@@ -179,25 +168,34 @@ class Program
                     continue;
                 }
 
-
-                string ProcessName = process.ProcessName;
+                string currentProcessName = process.ProcessName;
                 IntPtr hwnd = process.MainWindowHandle;
-                string windowTitle = process.MainWindowTitle; // Use MainWindowTitle to group by window
+                string windowTitle = process.MainWindowTitle;
                 bool isActive = (hwnd == GetForegroundWindow());
                 bool isVisible = IsWindowTrulyVisible(hwnd);
                 float memoryUsageMB = process.WorkingSet64 / (1024f * 1024f);
                 float cpuUsagePercentage = GetCpuUsage(process);
 
-                if (appUsage.ContainsKey(ProcessName))
+                if (appUsage.ContainsKey(currentProcessName))
                 {
-                    continue;
+                    // If process name already exists, aggregate resources from other instances of the same app
+                    appUsage[currentProcessName].MemoryUsageMB += memoryUsageMB;
+                    appUsage[currentProcessName].CpuUsagePercentage += cpuUsagePercentage;
+                    appUsage[currentProcessName].IsActive = isActive || appUsage[currentProcessName].IsActive;
+                    appUsage[currentProcessName].IsVisible = isVisible || appUsage[currentProcessName].IsVisible;
+                    appUsage[currentProcessName].AudioLevel = Math.Max(appUsage[currentProcessName].AudioLevel, audioLevel);
+                    // Aggregate window titles, avoiding duplicates and empty titles
+                    if (!string.IsNullOrEmpty(windowTitle) && !appUsage[currentProcessName].WindowName.Contains(windowTitle))
+                    {
+                        appUsage[currentProcessName].WindowName += (string.IsNullOrEmpty(appUsage[currentProcessName].WindowName) ? "" : "; ") + windowTitle;
+                    }
                 }
                 else
                 {
-                    appUsage[ProcessName] = new ResourceUsage
+                    appUsage[currentProcessName] = new ResourceUsage
                     {
                         MainWindowHandle = hwnd,
-                        ProcessName = ProcessName,
+                        ProcessName = currentProcessName,
                         WindowName = windowTitle,
                         MemoryUsageMB = memoryUsageMB,
                         CpuUsagePercentage = cpuUsagePercentage,
@@ -207,89 +205,89 @@ class Program
                     };
                 }
             }
-            catch (Exception) { }
-        }
-        foreach (var process2 in Process.GetProcesses())
-        {
-            if (process2.ProcessName == "System" || process2.ProcessName == "Idle" || string.IsNullOrEmpty(process2.ProcessName))
+            catch (Exception)
             {
-                continue;
-            }
-            string ProcessName = process2.ProcessName;
-
-            if (appUsage.ContainsKey(ProcessName))
-            {
-                bool processAudioActive = activeAudio.GetValueOrDefault(process2.Id, false);
-                int audioLevel = processAudioActive ? 1 : 0;
-
-                IntPtr hwnd = process2.MainWindowHandle;
-                string windowTitle = process2.MainWindowTitle; // Use MainWindowTitle to group by window
-                bool isActive = (hwnd == GetForegroundWindow());
-                bool isVisible = IsWindowTrulyVisible(hwnd);
-                float memoryUsageMB = process2.WorkingSet64 / (1024f * 1024f);
-                float cpuUsagePercentage = GetCpuUsage(process2);
-                appUsage[ProcessName].MemoryUsageMB += memoryUsageMB; // Aggregate memory
-                appUsage[ProcessName].CpuUsagePercentage += cpuUsagePercentage; // Aggregate CPU
-                appUsage[ProcessName].IsActive = isActive || appUsage[ProcessName].IsActive;
-                appUsage[ProcessName].IsVisible = isVisible || appUsage[ProcessName].IsVisible;
-                appUsage[ProcessName].AudioLevel = Math.Max(appUsage[ProcessName].AudioLevel, audioLevel); // Any instance making sound = 1
-                appUsage[ProcessName].WindowName = appUsage[ProcessName].WindowName + windowTitle;
-
+                // Ignore processes that might throw errors (e.g., access denied, process exited)
             }
         }
 
-        foreach (var usage in appUsage)
+        foreach (var usage in appUsage.Values) // Iterate over values as we've aggregated by ProcessName
         {
-
-            // get rid of windows without a name
-            if (usage.Value.WindowName == "" || IsCloaked(usage.Value.MainWindowHandle))
+            // Get rid of windows without a name or cloaked windows
+            // Use the MainWindowHandle from the ResourceUsage object for IsCloaked check
+            if (string.IsNullOrEmpty(usage.WindowName) || IsCloaked(usage.MainWindowHandle))
             {
                 continue;
             }
-            string logEntry = $"{DateTime.Now}, {usage.Value.ProcessName}, {usage.Key}, {usage.Value.MemoryUsageMB:F2}, {usage.Value.CpuUsagePercentage:F2}, {usage.Value.AudioLevel}, {usage.Value.IsActive}, {usage.Value.IsVisible}\n";
-            int retryCount = 3;
-            while (retryCount > 0)
-            {
-                try
-                {
-                    await File.AppendAllTextAsync(LogFilePath, logEntry);
-                    Console.WriteLine($"{DateTime.Now}, **************************************************************");
 
-                    Console.WriteLine($"{usage.Value.ProcessName}, {usage.Value.MemoryUsageMB:F2}MB, {usage.Value.CpuUsagePercentage:F2}%, Audio:{usage.Value.AudioLevel}, Active:{usage.Value.IsActive}, Visible:{usage.Value.IsVisible}\n\n\n");
-                    break;
+            // Log to database
+            await LogActivityToDatabase(
+                DateTime.UtcNow, // Use UtcNow for consistency
+                usage.ProcessName,
+                usage.WindowName, // The aggregated window title
+                usage.MemoryUsageMB,
+                usage.CpuUsagePercentage,
+                usage.AudioLevel,
+                usage.IsActive,
+                usage.IsVisible
+            );
 
-                }
-                catch (IOException ex)
-                {
-                    if (IsFileLocked(ex))
-                    {
-                        retryCount--;
-                        Console.WriteLine($"Log file locked. Retrying in 1 second... (Retries left: {retryCount})");
-                        await Task.Delay(1000);
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Error writing to log file: {ex.Message}");
-                        break;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error writing to log file: {ex.Message}");
-                    break;
-                }
-            }
-
-            if (retryCount == 0)
-            {
-                Console.WriteLine($"Failed to write to log file for process {usage.Value.ProcessName} after multiple retries.");
-            }
+            Console.WriteLine($"{DateTime.Now}, **************************************************************");
+            Console.WriteLine($"{usage.ProcessName}, {usage.MemoryUsageMB:F2}MB, {usage.CpuUsagePercentage:F2}%, Audio:{usage.AudioLevel}, Active:{usage.IsActive}, Visible:{usage.IsVisible}\n\n\n");
         }
     }
 
+
+    // NEW: Centralized method for logging activity to the database with async and error handling
+    private static async Task LogActivityToDatabase(
+        DateTime timestamp,
+        string processName,
+        string windowTitle,
+        double memoryUsage,
+        double cpuUsage,
+        int audioLevel,
+        bool isActive,
+        bool isCloaked) // Note: isVisible from LogActiveWindow and IsCloaked from CheckResourceUsage are combined here
+    {
+        try
+        {
+            using (var connection = new SqlConnection(ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                var command = connection.CreateCommand();
+                command.CommandText =
+                @"
+                INSERT INTO ActivityLog (Timestamp, ProcessName, WindowTitle, MemoryUsageMB, CpuUsage, ProcessAudioLevel, IsActive, IsCloaked)
+                VALUES (@Timestamp, @ProcessName, @WindowTitle, @MemoryUsageMB, @CpuUsage, @ProcessAudioLevel, @IsActive, @IsCloaked);
+                ";
+
+                command.Parameters.AddWithValue("@Timestamp", timestamp);
+                command.Parameters.AddWithValue("@ProcessName", (object)processName ?? DBNull.Value);
+                command.Parameters.AddWithValue("@WindowTitle", (object)windowTitle ?? DBNull.Value);
+                command.Parameters.AddWithValue("@MemoryUsageMB", memoryUsage);
+                command.Parameters.AddWithValue("@CpuUsage", cpuUsage);
+                command.Parameters.AddWithValue("@ProcessAudioLevel", audioLevel);
+                command.Parameters.AddWithValue("@IsActive", isActive);
+                command.Parameters.AddWithValue("@IsCloaked", isCloaked);
+
+                await command.ExecuteNonQueryAsync();
+            }
+        }
+        catch (SqlException ex)
+        {
+            Console.Error.WriteLine($"Database error logging activity: {ex.Message}");
+            // In a real application, you'd log this more robustly (e.g., to a file, system log, error monitoring)
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"An unexpected error occurred logging activity: {ex.Message}");
+        }
+    }
+
+
     public class ResourceUsage
     {
-
         public nint MainWindowHandle { get; set; }
         public string WindowName { get; set; }
         public string ProcessName { get; set; }
@@ -297,7 +295,7 @@ class Program
         public float CpuUsagePercentage { get; set; }
         public int AudioLevel { get; set; } = 0; // Binary flag: 1 = playing audio, 0 = not playing
         public bool IsActive { get; set; }
-        public bool IsVisible { get; set; }
+        public bool IsVisible { get; set; } // Renamed from IsCloaked in previous context for clarity
     }
 
     private static float GetCpuUsage(Process process)
@@ -393,11 +391,11 @@ class Program
         return activeAudio;
     }
 
-    private static bool IsFileLocked(IOException exception)
-    {
-        int errorCode = Marshal.GetHRForException(exception) & ((1 << 16) - 1);
-        return errorCode == 32 || errorCode == 33;
-    }
+    // private static bool IsFileLocked(IOException exception) // REMOVED: No longer logging to file
+    // {
+    //     int errorCode = Marshal.GetHRForException(exception) & ((1 << 16) - 1);
+    //     return errorCode == 32 || errorCode == 33;
+    // }
 
     private static bool IsWindowTrulyVisible(IntPtr hWnd)
     {
