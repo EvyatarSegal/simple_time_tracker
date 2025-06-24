@@ -20,7 +20,8 @@ namespace ActivityTrackerService
     public partial class ActivityTrackerService : ServiceBase
     {
         // Connection string for your SQL Server LocalDB instance
-        private static readonly string ConnectionString = "Server=(localdb)\\MSSQLLocalDB;Database=TimeTrackerDB;Integrated Security=True;TrustServerCertificate=True;";
+        private static readonly string ConnectionString = "Server=(localdb)\\TimeTrackerInstance;Database=TimeTrackerDB2;Integrated Security=True;TrustServerCertificate=True;";   
+   
         private static string _lastActiveWindow = "";
         private static CancellationTokenSource _cts;
         private Task _windowTrackingTask;

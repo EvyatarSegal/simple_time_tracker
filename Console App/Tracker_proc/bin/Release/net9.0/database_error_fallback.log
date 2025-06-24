@@ -1,0 +1,247 @@
+24/06/2025 15:48:29: CRITICAL DATABASE ERROR - Could not log activity: Cannot open database "TimeTrackerDB" requested by the login. The login failed.
+Login failed for user 'BAGOOM\evyat'.
+Data: P:WindowsTerminal, W:D:\Users\evyat\Documents\Github\simple_time_tracker\Console App\Tracker_proc\bin\Release\net9.0\Tracker_proc.exe, Mem:101.56640625, CPU:0, Audio:0, Active:True, Visible:True, Cloaked:False
+Stack Trace:
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.InternalOpenAsync(SqlConnectionOverrides overrides, CancellationToken cancellationToken)
+--- End of stack trace from previous location ---
+   at Program.LogActivityToDatabase(DateTime timestamp, String processName, String windowName, Double memoryUsage, Double cpuUsage, Int32 audioLevel, Boolean isActive, Boolean isVisible, Boolean isCloaked) in D:\Users\evyat\Documents\Github\simple_time_tracker\Console App\Tracker_proc\Program.cs:line 471
+24/06/2025 15:48:29: CRITICAL DATABASE ERROR - Could not log activity: Cannot open database "TimeTrackerDB" requested by the login. The login failed.
+Login failed for user 'BAGOOM\evyat'.
+Data: P:SYSTEM, W:Total CPU: 100.00%, Mem:0, CPU:100, Audio:0, Active:False, Visible:True, Cloaked:False
+Stack Trace:
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.InternalOpenAsync(SqlConnectionOverrides overrides, CancellationToken cancellationToken)
+--- End of stack trace from previous location ---
+   at Program.LogActivityToDatabase(DateTime timestamp, String processName, String windowName, Double memoryUsage, Double cpuUsage, Int32 audioLevel, Boolean isActive, Boolean isVisible, Boolean isCloaked) in D:\Users\evyat\Documents\Github\simple_time_tracker\Console App\Tracker_proc\Program.cs:line 471
+24/06/2025 15:48:32: CRITICAL DATABASE ERROR - Could not log activity: Cannot open database "TimeTrackerDB" requested by the login. The login failed.
+Login failed for user 'BAGOOM\evyat'.
+Data: P:explorer, W:, Mem:467.48046875, CPU:0, Audio:0, Active:False, Visible:False, Cloaked:True
+Stack Trace:
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.InternalOpenAsync(SqlConnectionOverrides overrides, CancellationToken cancellationToken)
+--- End of stack trace from previous location ---
+   at Program.LogActivityToDatabase(DateTime timestamp, String processName, String windowName, Double memoryUsage, Double cpuUsage, Int32 audioLevel, Boolean isActive, Boolean isVisible, Boolean isCloaked) in D:\Users\evyat\Documents\Github\simple_time_tracker\Console App\Tracker_proc\Program.cs:line 471
+24/06/2025 15:48:32: CRITICAL DATABASE ERROR - Could not log activity: Cannot open database "TimeTrackerDB" requested by the login. The login failed.
+Login failed for user 'BAGOOM\evyat'.
+Data: P:TextInputHost, W:Windows Input Experience, Mem:274.06640625, CPU:0, Audio:0, Active:False, Visible:False, Cloaked:True
+Stack Trace:
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.InternalOpenAsync(SqlConnectionOverrides overrides, CancellationToken cancellationToken)
+--- End of stack trace from previous location ---
+   at Program.LogActivityToDatabase(DateTime timestamp, String processName, String windowName, Double memoryUsage, Double cpuUsage, Int32 audioLevel, Boolean isActive, Boolean isVisible, Boolean isCloaked) in D:\Users\evyat\Documents\Github\simple_time_tracker\Console App\Tracker_proc\Program.cs:line 471
+24/06/2025 15:48:32: CRITICAL DATABASE ERROR - Could not log activity: Cannot open database "TimeTrackerDB" requested by the login. The login failed.
+Login failed for user 'BAGOOM\evyat'.
+Data: P:Discord, W:Friends - Discord, Mem:109.61328125, CPU:0, Audio:0, Active:False, Visible:False, Cloaked:False
+Stack Trace:
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.InternalOpenAsync(SqlConnectionOverrides overrides, CancellationToken cancellationToken)
+--- End of stack trace from previous location ---
+   at Program.LogActivityToDatabase(DateTime timestamp, String processName, String windowName, Double memoryUsage, Double cpuUsage, Int32 audioLevel, Boolean isActive, Boolean isVisible, Boolean isCloaked) in D:\Users\evyat\Documents\Github\simple_time_tracker\Console App\Tracker_proc\Program.cs:line 471
+24/06/2025 15:48:32: CRITICAL DATABASE ERROR - Could not log activity: Cannot open database "TimeTrackerDB" requested by the login. The login failed.
+Login failed for user 'BAGOOM\evyat'.
+Data: P:Spotify, W:Teruyuki Nobuchika - a day, Mem:194.8515625, CPU:0.9867370128631592, Audio:1, Active:False, Visible:False, Cloaked:False
+Stack Trace:
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.InternalOpenAsync(SqlConnectionOverrides overrides, CancellationToken cancellationToken)
+--- End of stack trace from previous location ---
+   at Program.LogActivityToDatabase(DateTime timestamp, String processName, String windowName, Double memoryUsage, Double cpuUsage, Int32 audioLevel, Boolean isActive, Boolean isVisible, Boolean isCloaked) in D:\Users\evyat\Documents\Github\simple_time_tracker\Console App\Tracker_proc\Program.cs:line 471
+24/06/2025 15:48:32: CRITICAL DATABASE ERROR - Could not log activity: Cannot open database "TimeTrackerDB" requested by the login. The login failed.
+Login failed for user 'BAGOOM\evyat'.
+Data: P:voicemeeter, W:Voicemeeter Standard, Mem:39.41796875, CPU:0, Audio:0, Active:False, Visible:False, Cloaked:False
+Stack Trace:
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.InternalOpenAsync(SqlConnectionOverrides overrides, CancellationToken cancellationToken)
+--- End of stack trace from previous location ---
+   at Program.LogActivityToDatabase(DateTime timestamp, String processName, String windowName, Double memoryUsage, Double cpuUsage, Int32 audioLevel, Boolean isActive, Boolean isVisible, Boolean isCloaked) in D:\Users\evyat\Documents\Github\simple_time_tracker\Console App\Tracker_proc\Program.cs:line 471
+24/06/2025 15:48:32: CRITICAL DATABASE ERROR - Could not log activity: Cannot open database "TimeTrackerDB" requested by the login. The login failed.
+Login failed for user 'BAGOOM\evyat'.
+Data: P:VoicemeeterMacroButtons, W:Voicemeeter.Remote - Macro.Buttons (Version: 1.1.2.0), Mem:18.37109375, CPU:0, Audio:0, Active:False, Visible:False, Cloaked:False
+Stack Trace:
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.InternalOpenAsync(SqlConnectionOverrides overrides, CancellationToken cancellationToken)
+--- End of stack trace from previous location ---
+   at Program.LogActivityToDatabase(DateTime timestamp, String processName, String windowName, Double memoryUsage, Double cpuUsage, Int32 audioLevel, Boolean isActive, Boolean isVisible, Boolean isCloaked) in D:\Users\evyat\Documents\Github\simple_time_tracker\Console App\Tracker_proc\Program.cs:line 471
+24/06/2025 15:48:32: CRITICAL DATABASE ERROR - Could not log activity: Cannot open database "TimeTrackerDB" requested by the login. The login failed.
+Login failed for user 'BAGOOM\evyat'.
+Data: P:chrome, W:‪Google Gemini - Google Chrome‬, Mem:449.92578125, CPU:0, Audio:0, Active:False, Visible:True, Cloaked:False
+Stack Trace:
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.InternalOpenAsync(SqlConnectionOverrides overrides, CancellationToken cancellationToken)
+--- End of stack trace from previous location ---
+   at Program.LogActivityToDatabase(DateTime timestamp, String processName, String windowName, Double memoryUsage, Double cpuUsage, Int32 audioLevel, Boolean isActive, Boolean isVisible, Boolean isCloaked) in D:\Users\evyat\Documents\Github\simple_time_tracker\Console App\Tracker_proc\Program.cs:line 471
+24/06/2025 15:48:32: CRITICAL DATABASE ERROR - Could not log activity: Cannot open database "TimeTrackerDB" requested by the login. The login failed.
+Login failed for user 'BAGOOM\evyat'.
+Data: P:ApplicationFrameHost, W:Settings, Mem:47.02734375, CPU:0, Audio:0, Active:False, Visible:False, Cloaked:False
+Stack Trace:
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.InternalOpenAsync(SqlConnectionOverrides overrides, CancellationToken cancellationToken)
+--- End of stack trace from previous location ---
+   at Program.LogActivityToDatabase(DateTime timestamp, String processName, String windowName, Double memoryUsage, Double cpuUsage, Int32 audioLevel, Boolean isActive, Boolean isVisible, Boolean isCloaked) in D:\Users\evyat\Documents\Github\simple_time_tracker\Console App\Tracker_proc\Program.cs:line 471
+24/06/2025 15:48:32: CRITICAL DATABASE ERROR - Could not log activity: Cannot open database "TimeTrackerDB" requested by the login. The login failed.
+Login failed for user 'BAGOOM\evyat'.
+Data: P:GitHubDesktop, W:GitHub Desktop, Mem:108.78515625, CPU:0, Audio:0, Active:False, Visible:True, Cloaked:False
+Stack Trace:
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.InternalOpenAsync(SqlConnectionOverrides overrides, CancellationToken cancellationToken)
+--- End of stack trace from previous location ---
+   at Program.LogActivityToDatabase(DateTime timestamp, String processName, String windowName, Double memoryUsage, Double cpuUsage, Int32 audioLevel, Boolean isActive, Boolean isVisible, Boolean isCloaked) in D:\Users\evyat\Documents\Github\simple_time_tracker\Console App\Tracker_proc\Program.cs:line 471
+24/06/2025 15:48:32: CRITICAL DATABASE ERROR - Could not log activity: Cannot open database "TimeTrackerDB" requested by the login. The login failed.
+Login failed for user 'BAGOOM\evyat'.
+Data: P:mmc, W:Services; Event Viewer, Mem:139.10546875, CPU:0, Audio:0, Active:False, Visible:False, Cloaked:False
+Stack Trace:
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.InternalOpenAsync(SqlConnectionOverrides overrides, CancellationToken cancellationToken)
+--- End of stack trace from previous location ---
+   at Program.LogActivityToDatabase(DateTime timestamp, String processName, String windowName, Double memoryUsage, Double cpuUsage, Int32 audioLevel, Boolean isActive, Boolean isVisible, Boolean isCloaked) in D:\Users\evyat\Documents\Github\simple_time_tracker\Console App\Tracker_proc\Program.cs:line 471
+24/06/2025 15:48:32: CRITICAL DATABASE ERROR - Could not log activity: Cannot open database "TimeTrackerDB" requested by the login. The login failed.
+Login failed for user 'BAGOOM\evyat'.
+Data: P:powershell, W:Administrator: Windows PowerShell, Mem:108.2421875, CPU:0, Audio:0, Active:False, Visible:False, Cloaked:False
+Stack Trace:
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.InternalOpenAsync(SqlConnectionOverrides overrides, CancellationToken cancellationToken)
+--- End of stack trace from previous location ---
+   at Program.LogActivityToDatabase(DateTime timestamp, String processName, String windowName, Double memoryUsage, Double cpuUsage, Int32 audioLevel, Boolean isActive, Boolean isVisible, Boolean isCloaked) in D:\Users\evyat\Documents\Github\simple_time_tracker\Console App\Tracker_proc\Program.cs:line 471
+24/06/2025 15:48:32: CRITICAL DATABASE ERROR - Could not log activity: Cannot open database "TimeTrackerDB" requested by the login. The login failed.
+Login failed for user 'BAGOOM\evyat'.
+Data: P:Zoom, W:Zoom Workplace, Mem:300.7265625, CPU:0, Audio:0, Active:False, Visible:False, Cloaked:False
+Stack Trace:
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.InternalOpenAsync(SqlConnectionOverrides overrides, CancellationToken cancellationToken)
+--- End of stack trace from previous location ---
+   at Program.LogActivityToDatabase(DateTime timestamp, String processName, String windowName, Double memoryUsage, Double cpuUsage, Int32 audioLevel, Boolean isActive, Boolean isVisible, Boolean isCloaked) in D:\Users\evyat\Documents\Github\simple_time_tracker\Console App\Tracker_proc\Program.cs:line 471
+24/06/2025 15:48:32: CRITICAL DATABASE ERROR - Could not log activity: Cannot open database "TimeTrackerDB" requested by the login. The login failed.
+Login failed for user 'BAGOOM\evyat'.
+Data: P:Taskmgr, W:Task Manager, Mem:170.74609375, CPU:0, Audio:0, Active:False, Visible:False, Cloaked:False
+Stack Trace:
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.InternalOpenAsync(SqlConnectionOverrides overrides, CancellationToken cancellationToken)
+--- End of stack trace from previous location ---
+   at Program.LogActivityToDatabase(DateTime timestamp, String processName, String windowName, Double memoryUsage, Double cpuUsage, Int32 audioLevel, Boolean isActive, Boolean isVisible, Boolean isCloaked) in D:\Users\evyat\Documents\Github\simple_time_tracker\Console App\Tracker_proc\Program.cs:line 471
+24/06/2025 15:48:32: CRITICAL DATABASE ERROR - Could not log activity: Cannot open database "TimeTrackerDB" requested by the login. The login failed.
+Login failed for user 'BAGOOM\evyat'.
+Data: P:Code, W:Program.cs - Tracker_proc - Visual Studio Code, Mem:180.01953125, CPU:0, Audio:0, Active:False, Visible:True, Cloaked:False
+Stack Trace:
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.InternalOpenAsync(SqlConnectionOverrides overrides, CancellationToken cancellationToken)
+--- End of stack trace from previous location ---
+   at Program.LogActivityToDatabase(DateTime timestamp, String processName, String windowName, Double memoryUsage, Double cpuUsage, Int32 audioLevel, Boolean isActive, Boolean isVisible, Boolean isCloaked) in D:\Users\evyat\Documents\Github\simple_time_tracker\Console App\Tracker_proc\Program.cs:line 471
+24/06/2025 15:48:32: CRITICAL DATABASE ERROR - Could not log activity: Cannot open database "TimeTrackerDB" requested by the login. The login failed.
+Login failed for user 'BAGOOM\evyat'.
+Data: P:SSMS, W:SQLQuery3.sql - localhost.TimeTrackerDB (BAGOOM\evyat (71))* - SQLQuery3.sql - localhost.TimeTrackerDB (BAGOOM\evyat (71))* - Microsoft SQL Server Management Studio, Mem:756.14453125, CPU:0, Audio:0, Active:False, Visible:False, Cloaked:False
+Stack Trace:
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.InternalOpenAsync(SqlConnectionOverrides overrides, CancellationToken cancellationToken)
+--- End of stack trace from previous location ---
+   at Program.LogActivityToDatabase(DateTime timestamp, String processName, String windowName, Double memoryUsage, Double cpuUsage, Int32 audioLevel, Boolean isActive, Boolean isVisible, Boolean isCloaked) in D:\Users\evyat\Documents\Github\simple_time_tracker\Console App\Tracker_proc\Program.cs:line 471
+24/06/2025 15:48:32: CRITICAL DATABASE ERROR - Could not log activity: Cannot open database "TimeTrackerDB" requested by the login. The login failed.
+Login failed for user 'BAGOOM\evyat'.
+Data: P:powershell_ise, W:Administrator: Windows PowerShell ISE, Mem:260.265625, CPU:0, Audio:0, Active:False, Visible:False, Cloaked:False
+Stack Trace:
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.InternalOpenAsync(SqlConnectionOverrides overrides, CancellationToken cancellationToken)
+--- End of stack trace from previous location ---
+   at Program.LogActivityToDatabase(DateTime timestamp, String processName, String windowName, Double memoryUsage, Double cpuUsage, Int32 audioLevel, Boolean isActive, Boolean isVisible, Boolean isCloaked) in D:\Users\evyat\Documents\Github\simple_time_tracker\Console App\Tracker_proc\Program.cs:line 471
+24/06/2025 15:48:32: CRITICAL DATABASE ERROR - Could not log activity: Cannot open database "TimeTrackerDB" requested by the login. The login failed.
+Login failed for user 'BAGOOM\evyat'.
+Data: P:WindowsTerminal, W:D:\Users\evyat\Documents\Github\simple_time_tracker\Console App\Tracker_proc\bin\Release\net9.0\Tracker_proc.exe, Mem:101.6015625, CPU:0, Audio:0, Active:True, Visible:True, Cloaked:False
+Stack Trace:
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.SqlClient.ConnectionPool.WaitHandleDbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.InternalOpenAsync(SqlConnectionOverrides overrides, CancellationToken cancellationToken)
+--- End of stack trace from previous location ---
+   at Program.LogActivityToDatabase(DateTime timestamp, String processName, String windowName, Double memoryUsage, Double cpuUsage, Int32 audioLevel, Boolean isActive, Boolean isVisible, Boolean isCloaked) in D:\Users\evyat\Documents\Github\simple_time_tracker\Console App\Tracker_proc\Program.cs:line 471
