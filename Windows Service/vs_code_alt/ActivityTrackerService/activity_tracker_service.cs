@@ -11,17 +11,14 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NAudio.CoreAudioApi;
-using static Vanara.PInvoke.Gdi32;
-using static Vanara.PInvoke.Kernel32;
-using Microsoft.Data.SqlClient;
-using System.ServiceProcess;
+using static Vanara.PInvoke.Gdi32; // Assuming you still need these, otherwise consider removing
+using static Vanara.PInvoke.Kernel32; // Assuming you still need these, otherwise consider removing
 
 namespace ActivityTrackerService
 {
     public partial class ActivityTrackerService : System.ServiceProcess.ServiceBase
     {
-        // Connection string for your SQL Server LocalDB instance
-        private static readonly string ConnectionString = "Server=(localdb)\\MSSQLLocalDB;Database=TimeTrackerDB;Integrated Security=True;TrustServerCertificate=True;";
+        private static readonly string LogFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ActivityLog.txt");
         private static string _lastActiveWindow = "";
         private static CancellationTokenSource _cts;
         private Task _windowTrackingTask;
@@ -37,16 +34,21 @@ namespace ActivityTrackerService
             try
             {
                 _cts = new CancellationTokenSource();
-                
+
                 _windowTrackingTask = StartActiveWindowTracking(_cts.Token);
                 _resourceMonitoringTask = StartResourceMonitoring(_cts.Token);
 
+                // Now calling the static WriteToEventLog
                 WriteToEventLog("Activity Tracker Service Started", EventLogEntryType.Information);
+                // Initial log to ensure file is written and service is starting debug output
+                LogActivityToFile(DateTime.UtcNow, "Service", "Service started successfully. Initiating debug logging.", 0, 0, 0, false, false, false).Wait();
             }
             catch (Exception ex)
             {
-                WriteToEventLog($"Error starting service: {ex.Message}", EventLogEntryType.Error);
-                throw;
+                // Now calling the static WriteToEventLog
+                WriteToEventLog($"Error during service start: {ex.Message}", EventLogEntryType.Error);
+                // Log to file as well if possible, for debugging startup issues
+                try { File.AppendAllText(LogFilePath, $"{DateTime.UtcNow}: ERROR - Service Start Failed: {ex.Message}\n"); } catch { /* Ignore if file logging itself fails here */ }
             }
         }
 
@@ -54,22 +56,25 @@ namespace ActivityTrackerService
         {
             try
             {
+                // Now calling the static WriteToEventLog
                 WriteToEventLog("Activity Tracker Service Stopping...", EventLogEntryType.Information);
-                
+
                 _cts?.Cancel();
-                
+
                 // Wait for tasks to complete with timeout
-                if (_windowTrackingTask != null && _resourceMonitoringTask != null)
-                {
-                    Task.WaitAll(new[] { _windowTrackingTask, _resourceMonitoringTask }, TimeSpan.FromSeconds(30));
-                }
+                if (_windowTrackingTask != null) _windowTrackingTask.Wait(5000);
+                if (_resourceMonitoringTask != null) _resourceMonitoringTask.Wait(5000);
 
                 _cts?.Dispose();
+                // Now calling the static WriteToEventLog
                 WriteToEventLog("Activity Tracker Service Stopped", EventLogEntryType.Information);
+                LogActivityToFile(DateTime.UtcNow, "Service", "Service stopped successfully.", 0, 0, 0, false, false, false).Wait();
             }
             catch (Exception ex)
             {
+                // Now calling the static WriteToEventLog
                 WriteToEventLog($"Error stopping service: {ex.Message}", EventLogEntryType.Error);
+                try { File.AppendAllText(LogFilePath, $"{DateTime.UtcNow}: ERROR - Service Stop Failed: {ex.Message}\n"); } catch { }
             }
         }
 
@@ -79,119 +84,162 @@ namespace ActivityTrackerService
             {
                 while (!token.IsCancellationRequested)
                 {
-                    string activeWindow = GetActiveWindowTitle();
-                    if (activeWindow != _lastActiveWindow)
-                    {
-                        _lastActiveWindow = activeWindow;
-                        await LogActiveWindow(activeWindow);
-                    }
-                    await Task.Delay(1000, token);
+                    await LogActiveWindow(); // Call this directly, it will handle window details
+                    await Task.Delay(1000, token); // Check every 1 second
                 }
             }
             catch (TaskCanceledException)
             {
-                // Normal cancellation, no need to log
+                // Normal cancellation, no need to log here usually
             }
             catch (Exception ex)
             {
+                // Now calling the static WriteToEventLog
                 WriteToEventLog($"Error in StartActiveWindowTracking: {ex.Message}", EventLogEntryType.Error);
+                await LogActivityToFile(DateTime.UtcNow, "ERROR", $"Active Window Tracking Error: {ex.Message}", 0, 0, 0, false, false, false);
             }
         }
 
-        private static string GetActiveWindowTitle()
+        private static async Task LogActiveWindow()
         {
-            const int nChars = 256;
-            IntPtr handle = GetForegroundWindow();
-            StringBuilder buffer = new StringBuilder(nChars);
-            return GetWindowText(handle, buffer, nChars) > 0 ? buffer.ToString() : "Unknown";
-        }
-
-        private static async Task LogActiveWindow(string windowTitle)
-        {
-            string processName = GetActiveProcessName();
             IntPtr hwnd = GetForegroundWindow();
-            GetWindowThreadProcessId(hwnd, out uint processId);
-            bool isActive = (hwnd == GetForegroundWindow());
-            bool isVisible = IsWindowTrulyVisible(hwnd);
+            string windowTitle = "";
+            string processName = "";
+            uint processId = 0;
+            bool isActive = false;
+            bool isVisible = false;
+            bool isCloaked = false;
             float memoryUsageMB = 0;
             float cpuUsagePercentage = 0;
-
-            // Get audio activity - 1 if active, 0 if not
-            Dictionary<int, bool> activeAudio = GetActiveAudioProcesses();
-            bool processAudioActive = activeAudio.GetValueOrDefault((int)processId, false);
-            int audioLevel = processAudioActive ? 1 : 0;
+            int audioLevel = 0;
 
             try
             {
-                Process process = Process.GetProcessById((int)processId);
-                memoryUsageMB = process.WorkingSet64 / (1024f * 1024f);
-                cpuUsagePercentage = GetCpuUsage(process);
-            }
-            catch (Exception)
-            {
-                // Ignore if process not found or other issues during resource fetching for this process
-            }
+                // Debugging: Always log foreground window handle status
+                await LogActivityToFile(DateTime.UtcNow, "DEBUG_ACTIVE_WINDOW", $"Raw Foreground HWND: {hwnd}", 0, 0, 0, false, false, false);
 
-            // Log to database
-            await LogActivityToDatabase(
-                DateTime.UtcNow,
-                processName,
-                windowTitle,
-                memoryUsageMB,
-                cpuUsagePercentage,
-                audioLevel,
-                isActive,
-                isCloaked: IsCloaked(hwnd)
-            );
+                if (hwnd == IntPtr.Zero)
+                {
+                    windowTitle = "[Idle]";
+                    processName = "[Idle]";
+                    await LogActivityToFile(DateTime.UtcNow, processName, windowTitle, 0, 0, 0, false, false, false);
+                    return; // No active window, nothing more to do for this iteration
+                }
+
+                // Get title
+                const int nChars = 256;
+                StringBuilder buffer = new StringBuilder(nChars);
+                int textLength = GetWindowText(hwnd, buffer, nChars);
+                windowTitle = (textLength > 0) ? buffer.ToString() : "[No Title]";
+                await LogActivityToFile(DateTime.UtcNow, "DEBUG_ACTIVE_WINDOW", $"HWND: {hwnd}, Raw Title: '{windowTitle}'", 0, 0, 0, false, false, false);
+
+                // Get process name and ID
+                GetWindowThreadProcessId(hwnd, out processId);
+                try
+                {
+                    Process process = Process.GetProcessById((int)processId);
+                    processName = process.ProcessName;
+                    memoryUsageMB = process.WorkingSet64 / (1024f * 1024f);
+                    cpuUsagePercentage = GetCpuUsage(process);
+                    await LogActivityToFile(DateTime.UtcNow, "DEBUG_ACTIVE_WINDOW", $"HWND: {hwnd}, ProcessName: '{processName}', PID: {processId}", 0, 0, 0, false, false, false);
+                }
+                catch (ArgumentException)
+                {
+                    processName = "[Process Not Found]";
+                    await LogActivityToFile(DateTime.UtcNow, "DEBUG_ACTIVE_WINDOW", $"HWND: {hwnd}, Process Not Found for PID: {processId}", 0, 0, 0, false, false, false);
+                }
+                catch (InvalidOperationException)
+                {
+                    processName = "[Process Exited]";
+                    await LogActivityToFile(DateTime.UtcNow, "DEBUG_ACTIVE_WINDOW", $"HWND: {hwnd}, Process Exited for PID: {processId}", 0, 0, 0, false, false, false);
+                }
+                catch (Exception ex)
+                {
+                    processName = "[Error Getting Process]";
+                    await LogActivityToFile(DateTime.UtcNow, "ERROR", $"HWND: {hwnd}, Process Name/Resource Error for PID {processId}: {ex.Message}", 0, 0, 0, false, false, false);
+                }
+
+                // Check visibility and cloaked status
+                isVisible = IsWindowTrulyVisible(hwnd);
+                isCloaked = IsCloaked(hwnd);
+                isActive = (hwnd == GetForegroundWindow()); // Re-check to ensure it's still foreground
+
+                await LogActivityToFile(DateTime.UtcNow, "DEBUG_ACTIVE_WINDOW", $"HWND: {hwnd}, IsVisible: {isVisible}, IsCloaked: {isCloaked}, IsActive (re-check): {isActive}", 0, 0, 0, false, false, false);
+
+                // Get audio activity
+                Dictionary<int, bool> activeAudio = GetActiveAudioProcesses();
+                bool processAudioActive = activeAudio.GetValueOrDefault((int)processId, false);
+                audioLevel = processAudioActive ? 1 : 0;
+
+                // --- ACTUAL LOGGING OF ACTIVITY ---
+                // Log only if it's a new active window or for debugging purposes log everything
+                if (windowTitle != _lastActiveWindow || string.IsNullOrWhiteSpace(_lastActiveWindow))
+                {
+                    _lastActiveWindow = windowTitle; // Update last active window only if new
+                    await LogActivityToFile(
+                        DateTime.UtcNow,
+                        processName,
+                        windowTitle,
+                        memoryUsageMB,
+                        cpuUsagePercentage,
+                        audioLevel,
+                        isActive,
+                        isVisible, // Log true visibility from IsWindowTrulyVisible
+                        isCloaked // Log the cloaked status
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                // Now calling the static WriteToEventLog
+                WriteToEventLog($"General Error in LogActiveWindow: {ex.Message}", EventLogEntryType.Error);
+                await LogActivityToFile(DateTime.UtcNow, "ERROR", $"General LogActiveWindow Error: {ex.Message}", 0, 0, 0, false, false, false);
+            }
         }
 
-        private static string GetActiveProcessName()
-        {
-            IntPtr hwnd = GetForegroundWindow();
-            GetWindowThreadProcessId(hwnd, out uint processId);
-            try
-            {
-                return Process.GetProcessById((int)processId).ProcessName;
-            }
-            catch
-            {
-                return "Unknown";
-            }
-        }
-
+        // --- Resource Monitoring ---
         private static async Task StartResourceMonitoring(CancellationToken token)
         {
             try
             {
+                PerformanceCounter cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+                cpuCounter.NextValue(); // Call once to initialize
+
                 while (!token.IsCancellationRequested)
                 {
-                    await CheckResourceUsage();
+                    await CheckResourceUsage(cpuCounter); // Pass the counter
                     await Task.Delay(5 * 60 * 1000, token); // Log every 5 minutes
                 }
             }
             catch (TaskCanceledException)
             {
-                // Normal cancellation, no need to log
+                // Normal cancellation
             }
             catch (Exception ex)
             {
+                // Now calling the static WriteToEventLog
                 WriteToEventLog($"Error in StartResourceMonitoring: {ex.Message}", EventLogEntryType.Error);
+                await LogActivityToFile(DateTime.UtcNow, "ERROR", $"Resource Monitoring Task Error: {ex.Message}", 0, 0, 0, false, false, false);
             }
         }
 
-        private static async Task CheckResourceUsage()
+        // Modified to accept cpuCounter
+        private static async Task CheckResourceUsage(PerformanceCounter totalCpuCounter)
         {
             Dictionary<int, bool> activeAudio = GetActiveAudioProcesses();
             Dictionary<string, ResourceUsage> appUsage = new Dictionary<string, ResourceUsage>();
+
+            // Log total CPU usage first
+            double totalCpuUsage = GetCpuUsage(totalCpuCounter);
+            await LogActivityToFile(DateTime.UtcNow, "SYSTEM", $"Total CPU: {totalCpuUsage:F2}%", 0, totalCpuUsage, 0, false, false, false);
+
 
             foreach (var process in Process.GetProcesses())
             {
                 try
                 {
-                    bool processAudioActive = activeAudio.GetValueOrDefault(process.Id, false);
-                    int audioLevel = processAudioActive ? 1 : 0;
-
-                    if ((process.ProcessName == "System" || process.ProcessName == "Idle" || string.IsNullOrEmpty(process.ProcessName) || process.MainWindowHandle == IntPtr.Zero) && audioLevel == 0)
+                    // Skip system/idle/empty processes unless they have audio activity
+                    if ((process.ProcessName == "System" || process.ProcessName == "Idle" || string.IsNullOrEmpty(process.ProcessName) || process.MainWindowHandle == IntPtr.Zero) && !activeAudio.GetValueOrDefault(process.Id, false))
                     {
                         continue;
                     }
@@ -201,15 +249,32 @@ namespace ActivityTrackerService
                     string windowTitle = process.MainWindowTitle;
                     bool isActive = (hwnd == GetForegroundWindow());
                     bool isVisible = IsWindowTrulyVisible(hwnd);
-                    float memoryUsageMB = process.WorkingSet64 / (1024f * 1024f);
-                    float cpuUsagePercentage = GetCpuUsage(process);
+                    bool isCloaked = IsCloaked(hwnd); // Check cloaked status here
 
+                    float memoryUsageMB = 0;
+                    float cpuUsagePercentage = 0;
+
+                    try
+                    {
+                        memoryUsageMB = process.WorkingSet64 / (1024f * 1024f);
+                        cpuUsagePercentage = GetCpuUsage(process);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log process-specific resource fetching errors, but don't stop the loop
+                        await LogActivityToFile(DateTime.UtcNow, "ERROR_RESOURCE", $"Process '{currentProcessName}' (PID {process.Id}) resource error: {ex.Message}", 0, 0, 0, false, false, false);
+                    }
+
+                    int audioLevel = activeAudio.GetValueOrDefault(process.Id, false) ? 1 : 0;
+
+                    // Aggregate usage
                     if (appUsage.ContainsKey(currentProcessName))
                     {
                         appUsage[currentProcessName].MemoryUsageMB += memoryUsageMB;
                         appUsage[currentProcessName].CpuUsagePercentage += cpuUsagePercentage;
                         appUsage[currentProcessName].IsActive = isActive || appUsage[currentProcessName].IsActive;
                         appUsage[currentProcessName].IsVisible = isVisible || appUsage[currentProcessName].IsVisible;
+                        appUsage[currentProcessName].IsCloaked = isCloaked && appUsage[currentProcessName].IsCloaked; // If any instance is not cloaked, then overall is not
                         appUsage[currentProcessName].AudioLevel = Math.Max(appUsage[currentProcessName].AudioLevel, audioLevel);
                         if (!string.IsNullOrEmpty(windowTitle) && !appUsage[currentProcessName].WindowName.Contains(windowTitle))
                         {
@@ -227,24 +292,28 @@ namespace ActivityTrackerService
                             CpuUsagePercentage = cpuUsagePercentage,
                             AudioLevel = audioLevel,
                             IsActive = isActive,
-                            IsVisible = isVisible
+                            IsVisible = isVisible,
+                            IsCloaked = isCloaked // Store cloaked status
                         };
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // Ignore processes that might throw errors
+                    // Catch general errors for processing a single process
+                    await LogActivityToFile(DateTime.UtcNow, "ERROR_PROCESS_LOOP", $"Error processing process in CheckResourceUsage: {ex.Message}", 0, 0, 0, false, false, false);
                 }
             }
 
             foreach (var usage in appUsage.Values)
             {
-                if (string.IsNullOrEmpty(usage.WindowName) || IsCloaked(usage.MainWindowHandle))
-                {
-                    continue;
-                }
+                // Temporarily disable the cloaked filter for debugging, enable once we understand the logs
+                // if (string.IsNullOrEmpty(usage.WindowName) || usage.IsCloaked)
+                // {
+                //     await LogActivityToFile(DateTime.UtcNow, "DEBUG_FILTERED", $"Filtered out '{usage.ProcessName}' (Window: '{usage.WindowName}', Cloaked: {usage.IsCloaked})", 0, 0, 0, false, false, false);
+                //     continue;
+                // }
 
-                await LogActivityToDatabase(
+                await LogActivityToFile(
                     DateTime.UtcNow,
                     usage.ProcessName,
                     usage.WindowName,
@@ -252,12 +321,122 @@ namespace ActivityTrackerService
                     usage.CpuUsagePercentage,
                     usage.AudioLevel,
                     usage.IsActive,
-                    usage.IsVisible
+                    usage.IsVisible,
+                    usage.IsCloaked // Log the cloaked status for debugging
                 );
             }
         }
 
-        private static async Task LogActivityToDatabase(
+        private static float GetCpuUsage(Process process)
+        {
+            try
+            {
+                using (var cpuCounter = new PerformanceCounter("Process", "% Processor Time", process.ProcessName))
+                {
+                    cpuCounter.NextValue();
+                    Thread.Sleep(100); // Give it time to calculate
+                    return cpuCounter.NextValue() / Environment.ProcessorCount;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log specific CPU counter errors for processes
+                LogActivityToFile(DateTime.UtcNow, "ERROR_CPU_PROCESS", $"Error getting CPU for '{process.ProcessName}': {ex.Message}", 0, 0, 0, false, false, false).Wait();
+                return 0;
+            }
+        }
+
+        // Overload for total CPU usage
+        private static double GetCpuUsage(PerformanceCounter cpuCounter)
+        {
+            try
+            {
+                return cpuCounter.NextValue();
+            }
+            catch (Exception ex)
+            {
+                LogActivityToFile(DateTime.UtcNow, "ERROR_CPU_TOTAL", $"Error getting total CPU usage: {ex.Message}", 0, 0, 0, false, false, false).Wait();
+                return 0;
+            }
+        }
+
+
+        private static Dictionary<int, bool> GetActiveAudioProcesses()
+        {
+            var activeAudio = new Dictionary<int, bool>();
+            float volumeThreshold = 0.1f;
+            float peakThreshold = 0.01f;
+
+            try
+            {
+                using (var enumerator = new MMDeviceEnumerator())
+                {
+                    var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+
+                    foreach (var device in devices)
+                    {
+                        var sessionManager = device.AudioSessionManager;
+                        if (sessionManager == null) continue;
+                        var sessions = sessionManager.Sessions;
+                        if (sessions == null) continue;
+
+                        for (int i = 0; i < sessions.Count; i++)
+                        {
+                            var session = sessions[i];
+                            try
+                            {
+                                uint audioSessionProcessId = session.GetProcessID;
+                                if (audioSessionProcessId != 0)
+                                {
+                                    float volume = session.SimpleAudioVolume.Volume;
+                                    if (volume < volumeThreshold) continue;
+
+                                    bool isActive = false;
+                                    try
+                                    {
+                                        var audioMeterInformation = session.AudioMeterInformation;
+                                        if (audioMeterInformation != null)
+                                        {
+                                            float peak = audioMeterInformation.MasterPeakValue;
+                                            isActive = peak > peakThreshold;
+                                        }
+                                    }
+                                    catch { isActive = volume > volumeThreshold; }
+
+                                    if (isActive || activeAudio.GetValueOrDefault((int)audioSessionProcessId, false))
+                                    {
+                                        activeAudio[(int)audioSessionProcessId] = true;
+                                    }
+                                    else if (!activeAudio.ContainsKey((int)audioSessionProcessId))
+                                    {
+                                        activeAudio[(int)audioSessionProcessId] = false;
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                if (!(ex is ArgumentException))
+                                {
+                                    // Log this to file, not just event log, for easier debugging
+                                    LogActivityToFile(DateTime.UtcNow, "ERROR_AUDIO_SESSION", $"Error processing audio session: {ex.Message}", 0, 0, 0, false, false, false).Wait();
+                                    // Now calling the static WriteToEventLog
+                                    WriteToEventLog($"Error processing audio session: {ex.Message}", EventLogEntryType.Warning);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogActivityToFile(DateTime.UtcNow, "ERROR_AUDIO_GLOBAL", $"Global error checking audio: {ex.Message}", 0, 0, 0, false, false, false).Wait();
+                // Now calling the static WriteToEventLog
+                WriteToEventLog($"Error checking audio: {ex.Message}", EventLogEntryType.Warning);
+            }
+            return activeAudio;
+        }
+
+        private static async Task LogActivityToFile(
             DateTime timestamp,
             string processName,
             string windowTitle,
@@ -265,43 +444,39 @@ namespace ActivityTrackerService
             double cpuUsage,
             int audioLevel,
             bool isActive,
-            bool isCloaked)
+            bool isVisible, // Renamed parameter from `isCloaked` to `isVisible` for clarity here
+            bool isCloaked // Added a separate parameter for `isCloaked`
+        )
         {
             try
             {
-                using (var connection = new SqlConnection(ConnectionString))
+                string logEntry = $"{timestamp:yyyy-MM-dd HH:mm:ss} | " +
+                                  $"Process: {processName} | " +
+                                  $"Window: {windowTitle} | " +
+                                  $"Mem: {memoryUsage:F2} MB | " +
+                                  $"CPU: {cpuUsage:F2}% | " +
+                                  $"Audio: {(audioLevel == 1 ? "Active" : "Inactive")} | " +
+                                  $"IsActive: {isActive} | " +
+                                  $"IsVisible: {isVisible} | " + // Log IsVisible explicitly
+                                  $"IsCloaked: {isCloaked}";     // Log IsCloaked explicitly
+
+                using (StreamWriter writer = new StreamWriter(LogFilePath, true))
                 {
-                    await connection.OpenAsync();
-
-                    var command = connection.CreateCommand();
-                    command.CommandText =
-                    @"
-                    INSERT INTO ActivityLog (Timestamp, ProcessName, WindowTitle, MemoryUsageMB, CpuUsage, ProcessAudioLevel, IsActive, IsCloaked)
-                    VALUES (@Timestamp, @ProcessName, @WindowTitle, @MemoryUsageMB, @CpuUsage, @ProcessAudioLevel, @IsActive, @IsCloaked);
-                    ";
-
-                    command.Parameters.AddWithValue("@Timestamp", timestamp);
-                    command.Parameters.AddWithValue("@ProcessName", (object)processName ?? DBNull.Value);
-                    command.Parameters.AddWithValue("@WindowTitle", (object)windowTitle ?? DBNull.Value);
-                    command.Parameters.AddWithValue("@MemoryUsageMB", memoryUsage);
-                    command.Parameters.AddWithValue("@CpuUsage", cpuUsage);
-                    command.Parameters.AddWithValue("@ProcessAudioLevel", audioLevel);
-                    command.Parameters.AddWithValue("@IsActive", isActive);
-                    command.Parameters.AddWithValue("@IsCloaked", isCloaked);
-
-                    await command.ExecuteNonQueryAsync();
+                    await writer.WriteLineAsync(logEntry);
                 }
-            }
-            catch (SqlException ex)
-            {
-                WriteToEventLog($"Database error logging activity: {ex.Message}", EventLogEntryType.Error);
             }
             catch (Exception ex)
             {
-                WriteToEventLog($"An unexpected error occurred logging activity: {ex.Message}", EventLogEntryType.Error);
+                // This catch is vital: if file logging itself fails, log to Event Viewer
+                string errorMsg = $"CRITICAL ERROR: Could not write to log file {LogFilePath}: {ex.Message}";
+                // Now calling the static WriteToEventLog
+                WriteToEventLog(errorMsg, EventLogEntryType.Error);
+                // Also attempt to write to console for immediate visibility if debugging locally
+                Console.WriteLine(errorMsg);
             }
         }
 
+        // Changed to static
         private static void WriteToEventLog(string message, EventLogEntryType entryType)
         {
             try
@@ -312,9 +487,10 @@ namespace ActivityTrackerService
                     eventLog.WriteEntry(message, entryType);
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // If we can't write to event log, silently continue
+                // Fallback for EventLog errors (e.g., source not registered, permissions)
+                Console.WriteLine($"ERROR: Could not write to EventLog: {ex.Message}. Original Message: {message}");
             }
         }
 
@@ -327,112 +503,115 @@ namespace ActivityTrackerService
             public float CpuUsagePercentage { get; set; }
             public int AudioLevel { get; set; } = 0;
             public bool IsActive { get; set; }
-            public bool IsVisible { get; set; }
+            public bool IsVisible { get; set; } // Reflects IsWindowTrulyVisible
+            public bool IsCloaked { get; set; } // Reflects DWMWA_CLOAKED status
         }
 
-        private static float GetCpuUsage(Process process)
+        // --- P/Invoke and Helper Methods (rest of your existing code below this) ---
+        // These methods remain largely the same, just ensure they are within the class
+        // as they were.
+
+        // DllImports
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
+        [DllImport("user32.dll")]
+        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool IsWindowVisible(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetWindowRect(IntPtr hWnd, ref RECT lpRect);
+
+        [DllImport("user32.dll")]
+        private static extern bool IsIconic(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetTopWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetAncestor(IntPtr hWnd, uint gaFlags);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetDesktopWindow();
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetShellWindow();
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool IntersectRect(ref RECT lprcDst, ref RECT lprcSrc1, ref RECT lprcSrc2);
+
+        [DllImport("user32.dll")]
+        private static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, MonitorEnumProcDelegate lpfnEnum, ref MonitorInfo dwData);
+
+        [DllImport("gdi32.dll")]
+        private static extern IntPtr CreateRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect);
+
+        [DllImport("gdi32.dll")]
+        private static extern int CombineRgn(IntPtr hrgnDest, IntPtr hrgnSrc1, IntPtr hrgnSrc2, int fnCombineMode);
+
+        [DllImport("gdi32.dll")]
+        private static extern bool DeleteObject(IntPtr hObject);
+
+        [DllImport("gdi32.dll")]
+        private static extern int GetRegionData(IntPtr hRgn, int dwCount, IntPtr lpRgnData);
+
+        [DllImport("dwmapi.dll")]
+        static extern int DwmGetWindowAttribute(IntPtr hwnd, int dwAttribute, out int pvAttribute, int cbAttribute);
+
+        // Constants
+        private const uint GA_PARENT = 1;
+        private const uint GW_HWNDNEXT = 2;
+        private const int RGN_DIFF = 4;
+        private const int DWMWA_CLOAKED = 14;
+
+        // Moved from Program.cs, ensure these are correct.
+        // It's possible IsWindowTrulyVisible or IsCloaked are overly aggressive.
+        // Temporarily commented out their usage in GetActiveWindowTitle for debugging.
+        private static bool IsCloaked(IntPtr hWnd)
         {
+            if (hWnd == IntPtr.Zero) return false;
             try
             {
-                using (var cpuCounter = new PerformanceCounter("Process", "% Processor Time", process.ProcessName))
+                int isCloaked = 0;
+                // Using sizeof(int) directly is fine, but Marshal.SizeOf(typeof(int)) is also an option.
+                // It's crucial to check the return value of DwmGetWindowAttribute. 0 means success.
+                if (DwmGetWindowAttribute(hWnd, DWMWA_CLOAKED, out isCloaked, sizeof(int)) == 0)
                 {
-                    cpuCounter.NextValue();
-                    Thread.Sleep(100);
-                    return cpuCounter.NextValue() / Environment.ProcessorCount;
+                    return isCloaked != 0;
                 }
-            }
-            catch (Exception)
-            {
-                return 0;
-            }
-        }
-
-        private static Dictionary<int, bool> GetActiveAudioProcesses()
-        {
-            var activeAudio = new Dictionary<int, bool>();
-            float volumeThreshold = 0.1f;
-            float peakThreshold = 0.01f;
-
-            try
-            {
-                var enumerator = new MMDeviceEnumerator();
-                var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
-
-                foreach (var device in devices)
-                {
-                    var sessionManager = device.AudioSessionManager;
-                    if (sessionManager == null) continue;
-                    var sessions = sessionManager.Sessions;
-                    if (sessions == null) continue;
-
-                    for (int i = 0; i < sessions.Count; i++)
-                    {
-                        var session = sessions[i];
-                        try
-                        {
-                            uint audioSessionProcessId = session.GetProcessID;
-                            if (audioSessionProcessId != 0)
-                            {
-                                float volume = session.SimpleAudioVolume.Volume;
-                                if (volume < volumeThreshold) continue;
-
-                                bool isActive = false;
-                                try
-                                {
-                                    var audioMeterInformation = session.AudioMeterInformation;
-                                    if (audioMeterInformation != null)
-                                    {
-                                        float peak = audioMeterInformation.MasterPeakValue;
-                                        isActive = peak > peakThreshold;
-                                    }
-                                }
-                                catch
-                                {
-                                    isActive = volume > volumeThreshold;
-                                }
-
-                                if (isActive || activeAudio.GetValueOrDefault((int)audioSessionProcessId, false))
-                                {
-                                    activeAudio[(int)audioSessionProcessId] = true;
-                                }
-                                else if (!activeAudio.ContainsKey((int)audioSessionProcessId))
-                                {
-                                    activeAudio[(int)audioSessionProcessId] = false;
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            if (!(ex is ArgumentException))
-                            {
-                                WriteToEventLog($"Error processing audio session: {ex.Message}", EventLogEntryType.Warning);
-                            }
-                        }
-                    }
-                }
+                // If DwmGetWindowAttribute fails, assume not cloaked to not filter out too much.
+                LogActivityToFile(DateTime.UtcNow, "DEBUG_CLOAKED_FAIL", $"DwmGetWindowAttribute failed for HWND {hWnd}. Assuming not cloaked.", 0, 0, 0, false, false, false).Wait();
+                return false;
             }
             catch (Exception ex)
             {
-                WriteToEventLog($"Error checking audio: {ex.Message}", EventLogEntryType.Warning);
+                LogActivityToFile(DateTime.UtcNow, "ERROR_ISCLOAKED", $"Error in IsCloaked for HWND {hWnd}: {ex.Message}", 0, 0, 0, false, false, false).Wait();
+                return false; // On error, assume not cloaked to not filter
             }
-            return activeAudio;
         }
 
-        // All the Windows API methods and supporting code remain the same
         private static bool IsWindowTrulyVisible(IntPtr hWnd)
         {
-            if (hWnd == IntPtr.Zero)
-            {
-                return false;
-            }
-
-            if (!IsWindowVisible(hWnd) || IsIconic(hWnd))
-            {
-                return false;
-            }
+            if (hWnd == IntPtr.Zero) return false;
 
             try
             {
+                if (!IsWindowVisible(hWnd) || IsIconic(hWnd))
+                {
+                    return false;
+                }
+
                 RECT windowRect = new RECT();
                 if (!GetWindowRect(hWnd, ref windowRect))
                 {
@@ -487,7 +666,7 @@ namespace ActivityTrackerService
             }
             catch (Exception ex)
             {
-                WriteToEventLog($"Error in IsWindowTrulyVisible: {ex.Message}", EventLogEntryType.Warning);
+                LogActivityToFile(DateTime.UtcNow, "ERROR_TRULY_VISIBLE", $"Error in IsWindowTrulyVisible for HWND {hWnd}: {ex.Message}", 0, 0, 0, false, false, false).Wait();
                 return false;
             }
         }
@@ -576,7 +755,7 @@ namespace ActivityTrackerService
             }
             catch (Exception ex)
             {
-                WriteToEventLog($"Error in GetVisibleRegion: {ex.Message}", EventLogEntryType.Warning);
+                LogActivityToFile(DateTime.UtcNow, "ERROR_VISIBLE_REGION", $"Error in GetVisibleRegion for HWND {hWnd}: {ex.Message}", 0, 0, 0, false, false, false).Wait();
                 return IntPtr.Zero;
             }
         }
@@ -620,12 +799,6 @@ namespace ActivityTrackerService
             return hWnd == GetDesktopWindow() || hWnd == GetShellWindow();
         }
 
-        static bool IsCloaked(IntPtr hWnd)
-        {
-            int isCloaked = 0;
-            return DwmGetWindowAttribute(hWnd, DWMWA_CLOAKED, out isCloaked, sizeof(int)) == 0 && isCloaked != 0;
-        }
-
         // Delegate and structures
         private delegate bool MonitorEnumProcDelegate(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, ref MonitorInfo dwData);
 
@@ -653,71 +826,6 @@ namespace ActivityTrackerService
         {
             public RGNDATAHEADER rdh;
         }
-
-        // DLL Imports
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
-
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
-
-        [DllImport("user32.dll")]
-        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
-
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool IsWindowVisible(IntPtr hWnd);
-
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool GetWindowRect(IntPtr hWnd, ref RECT lpRect);
-
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool IsIconic(IntPtr hWnd);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetTopWindow(IntPtr hWnd);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetAncestor(IntPtr hWnd, uint gaFlags);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetDesktopWindow();
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetShellWindow();
-
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool IntersectRect(ref RECT lprcDst, ref RECT lprcSrc1, ref RECT lprcSrc2);
-
-        [DllImport("user32.dll")]
-        private static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, MonitorEnumProcDelegate lpfnEnum, ref MonitorInfo dwData);
-
-        [DllImport("gdi32.dll")]
-        private static extern IntPtr CreateRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect);
-
-        [DllImport("gdi32.dll")]
-        private static extern int CombineRgn(IntPtr hrgnDest, IntPtr hrgnSrc1, IntPtr hrgnSrc2, int fnCombineMode);
-
-        [DllImport("gdi32.dll")]
-        private static extern bool DeleteObject(IntPtr hObject);
-
-        [DllImport("gdi32.dll")]
-        private static extern int GetRegionData(IntPtr hRgn, int dwCount, IntPtr lpRgnData);
-
-        [DllImport("dwmapi.dll")]
-        static extern int DwmGetWindowAttribute(IntPtr hwnd, int dwAttribute, out int pvAttribute, int cbAttribute);
-
-        // Constants
-        private const uint GA_PARENT = 1;
-        private const uint GW_HWNDNEXT = 2;
-        private const int RGN_DIFF = 4;
-        private const int DWMWA_CLOAKED = 14;
     }
 
     static class Program

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Tracker_proc")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5b3a2a413b2e810a7edd1e38303f2c77bf8da50b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e69e39ac669998bee069d96c5d1fecf5017c289e")]
 [assembly: System.Reflection.AssemblyProductAttribute("Tracker_proc")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Tracker_proc")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
