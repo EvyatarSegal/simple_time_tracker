@@ -17,12 +17,15 @@ namespace ActivityTrackerService
     {
         private readonly ILogger<Worker> _logger;
         // IMPORTANT: Updated to use Windows Authentication for local development
+        // This connection string points to your default SQL Server instance and uses Windows Authentication.
         private static readonly string ConnectionString = "Server=.;Database=TimeTrackerDB;Integrated Security=True;TrustServerCertificate=True;";
         private string _lastActiveWindow = "";
 
         public Worker(ILogger<Worker> logger)
         {
             _logger = logger;
+            // *** NEW DEBUG LOG: Worker constructor entered ***
+            _logger.LogInformation("[DEBUG] Worker constructor entered. Logger should be active.");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -57,9 +60,14 @@ namespace ActivityTrackerService
                 while (!token.IsCancellationRequested)
                 {
                     string activeWindow = GetActiveWindowTitle();
+                    // *** DEBUG LOG ***
+                    _logger.LogInformation($"[DEBUG] Current Active Window Detected: '{activeWindow}' | Last Logged Window: '{_lastActiveWindow}'");
+
                     if (activeWindow != _lastActiveWindow)
                     {
                         _lastActiveWindow = activeWindow;
+                        // *** DEBUG LOG ***
+                        _logger.LogInformation($"[DEBUG] Active window changed to: '{activeWindow}'. Calling LogActiveWindow.");
                         await LogActiveWindow(activeWindow);
                     }
                     await Task.Delay(1000, token);
@@ -80,11 +88,18 @@ namespace ActivityTrackerService
             const int nChars = 256;
             IntPtr handle = GetForegroundWindow();
             StringBuilder buffer = new StringBuilder(nChars);
-            return GetWindowText(handle, buffer, nChars) > 0 ? buffer.ToString() : "Unknown";
+            int charsCopied = GetWindowText(handle, buffer, nChars);
+            string title = charsCopied > 0 ? buffer.ToString() : "Unknown or no title";
+            // *** DEBUG LOG ***
+            _logger.LogInformation($"[DEBUG] GetActiveWindowTitle: Handle={handle}, Title='{title}'");
+            return title;
         }
 
         private async Task LogActiveWindow(string windowTitle)
         {
+            // *** DEBUG LOG ***
+            _logger.LogInformation($"[DEBUG] Entering LogActiveWindow for: '{windowTitle}'");
+
             string processName = GetActiveProcessName();
             IntPtr hwnd = GetForegroundWindow();
             GetWindowThreadProcessId(hwnd, out uint processId);
@@ -106,8 +121,12 @@ namespace ActivityTrackerService
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, $"Could not get resource usage for process ID {processId}.");
-                // Ignore if process not found or other issues during resource fetching for this process
             }
+
+            bool isCloakedStatus = IsCloaked(hwnd); // Capture status for logging
+
+            // *** DEBUG LOG ***
+            _logger.LogInformation($"[DEBUG] LogActiveWindow - Before DB Call: Process='{processName}', Window='{windowTitle}', IsActive={isActive}, IsVisible={isVisible}, IsCloaked={isCloakedStatus}");
 
             await LogActivityToDatabase(
                 DateTime.UtcNow,
@@ -117,7 +136,7 @@ namespace ActivityTrackerService
                 cpuUsagePercentage,
                 audioLevel,
                 isActive,
-                isCloaked: IsCloaked(hwnd)
+                isCloaked: isCloakedStatus
             );
 
             _logger.LogInformation("###############################");
@@ -130,10 +149,15 @@ namespace ActivityTrackerService
             GetWindowThreadProcessId(hwnd, out uint processId);
             try
             {
-                return Process.GetProcessById((int)processId).ProcessName;
+                string pName = Process.GetProcessById((int)processId).ProcessName;
+                // *** DEBUG LOG ***
+                _logger.LogInformation($"[DEBUG] GetActiveProcessName: Process ID={processId}, Name='{pName}'");
+                return pName;
             }
-            catch
+            catch (Exception ex)
             {
+                // *** DEBUG LOG ***
+                _logger.LogWarning(ex, $"[DEBUG] Could not get process name for ID {processId}.");
                 return "Unknown";
             }
         }
@@ -144,6 +168,8 @@ namespace ActivityTrackerService
             {
                 while (!token.IsCancellationRequested)
                 {
+                    // *** DEBUG LOG ***
+                    _logger.LogInformation("[DEBUG] Entering CheckResourceUsage (5-minute interval).");
                     await CheckResourceUsage();
                     await Task.Delay(5 * 60 * 1000, token); // Log every 5 minutes
                 }
@@ -172,6 +198,8 @@ namespace ActivityTrackerService
 
                     if ((process.ProcessName == "System" || process.ProcessName == "Idle" || string.IsNullOrEmpty(process.ProcessName) || process.MainWindowHandle == IntPtr.Zero) && audioLevel == 0)
                     {
+                        // *** DEBUG LOG ***
+                        _logger.LogInformation($"[DEBUG] Skipping process '{process.ProcessName}' due to filter (System/Idle/NoMainWindow/NoAudio).");
                         continue;
                     }
 
@@ -212,16 +240,24 @@ namespace ActivityTrackerService
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, $"Could not process resource usage for a process.");
+                    _logger.LogWarning(ex, $"[DEBUG] Could not process resource usage for a process during 5-minute check.");
                 }
             }
 
             foreach (var usage in appUsage.Values)
             {
-                if (string.IsNullOrEmpty(usage.WindowName) || IsCloaked(usage.MainWindowHandle))
+                bool isCloakedStatus = IsCloaked(usage.MainWindowHandle); // Capture status for logging
+                // Filters: If window name is empty or window is cloaked (e.g., minimized to tray, background app)
+                if (string.IsNullOrEmpty(usage.WindowName) || isCloakedStatus)
                 {
+                    // *** DEBUG LOG ***
+                    _logger.LogInformation($"[DEBUG] Skipping app '{usage.ProcessName}' (Window='{usage.WindowName}') due to filter (Empty Window Name or Cloaked={isCloakedStatus}).");
                     continue;
                 }
+
+                // *** DEBUG LOG ***
+                _logger.LogInformation($"[DEBUG] CheckResourceUsage - Before DB Call: Process='{usage.ProcessName}', Window='{usage.WindowName}', IsActive={usage.IsActive}, IsVisible={usage.IsVisible}, IsCloaked={isCloakedStatus}");
+
 
                 await LogActivityToDatabase(
                     DateTime.UtcNow,
@@ -267,11 +303,13 @@ namespace ActivityTrackerService
                     command.Parameters.AddWithValue("@WindowTitle", (object)windowTitle ?? DBNull.Value);
                     command.Parameters.AddWithValue("@MemoryUsageMB", memoryUsage);
                     command.Parameters.AddWithValue("@CpuUsage", cpuUsage);
-                    command.Parameters.AddWithValue("@AudioLevel", audioLevel); // Corrected parameter name
+                    command.Parameters.AddWithValue("@AudioLevel", audioLevel);
                     command.Parameters.AddWithValue("@IsActive", isActive);
                     command.Parameters.AddWithValue("@IsCloaked", isCloaked);
 
                     await command.ExecuteNonQueryAsync();
+                    // *** DEBUG LOG ***
+                    _logger.LogInformation($"[DEBUG] Successfully logged to DB: Process='{processName}', Window='{windowTitle}'");
                 }
             }
             catch (SqlException ex)
@@ -387,13 +425,24 @@ namespace ActivityTrackerService
 
         private bool IsWindowTrulyVisible(IntPtr hWnd)
         {
+            // *** DEBUG LOG ***
+            _logger.LogInformation($"[DEBUG] Entering IsWindowTrulyVisible for handle: {hWnd}");
+
             if (hWnd == IntPtr.Zero)
             {
+                _logger.LogInformation("[DEBUG] IsWindowTrulyVisible: hWnd is Zero.");
                 return false;
             }
 
-            if (!IsWindowVisible(hWnd) || IsIconic(hWnd))
+            if (!IsWindowVisible(hWnd))
             {
+                _logger.LogInformation($"[DEBUG] IsWindowTrulyVisible: Window {hWnd} is not visible (IsWindowVisible returned false).");
+                return false;
+            }
+
+            if (IsIconic(hWnd))
+            {
+                _logger.LogInformation($"[DEBUG] IsWindowTrulyVisible: Window {hWnd} is iconic (minimized).");
                 return false;
             }
 
@@ -402,33 +451,37 @@ namespace ActivityTrackerService
                 RECT windowRect = new RECT();
                 if (!GetWindowRect(hWnd, out windowRect))
                 {
+                    _logger.LogInformation($"[DEBUG] IsWindowTrulyVisible: GetWindowRect failed for {hWnd}.");
                     return false;
                 }
+                // *** DEBUG LOG ***
+                _logger.LogInformation($"[DEBUG] IsWindowTrulyVisible: Window {hWnd} Rect: L={windowRect.Left}, T={windowRect.Top}, R={windowRect.Right}, B={windowRect.Bottom}");
+
 
                 int windowWidth = windowRect.Right - windowRect.Left;
                 int windowHeight = windowRect.Bottom - windowRect.Top;
 
                 if (windowWidth <= 20 || windowHeight <= 20 || windowWidth <= 0 || windowHeight <= 0)
                 {
+                    _logger.LogInformation($"[DEBUG] IsWindowTrulyVisible: Window {hWnd} too small/invalid dimensions: W={windowWidth}, H={windowHeight}.");
                     return false;
                 }
 
-                // Create a MonitorInfo instance to track the result
                 MonitorInfo monitorInfo = new MonitorInfo();
                 monitorInfo.WindowRect = windowRect;
                 monitorInfo.IsWindowOnAnyMonitor = false;
 
-                // Allocate GCHandle to pass MonitorInfo to the callback
                 GCHandle handle = GCHandle.Alloc(monitorInfo);
                 try
                 {
                     IntPtr monitorInfoPtr = GCHandle.ToIntPtr(handle);
-
-                    // Use the proper callback method
-                    bool result = EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, MonitorEnumProc, monitorInfoPtr);
+                    bool enumResult = EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, MonitorEnumProc, monitorInfoPtr);
+                    // *** DEBUG LOG ***
+                    _logger.LogInformation($"[DEBUG] IsWindowTrulyVisible: EnumDisplayMonitors for {hWnd} returned {enumResult}, IsWindowOnAnyMonitor={monitorInfo.IsWindowOnAnyMonitor}");
 
                     if (!monitorInfo.IsWindowOnAnyMonitor)
                     {
+                        _logger.LogInformation($"[DEBUG] IsWindowTrulyVisible: Window {hWnd} not on any monitor.");
                         return false;
                     }
                 }
@@ -440,15 +493,23 @@ namespace ActivityTrackerService
                 IntPtr windowRegion = CreateRectRgn(windowRect.Left, windowRect.Top, windowRect.Right, windowRect.Bottom);
                 if (windowRegion == IntPtr.Zero)
                 {
+                    _logger.LogInformation($"[DEBUG] IsWindowTrulyVisible: CreateRectRgn failed for {hWnd}.");
                     return false;
                 }
+                // *** DEBUG LOG ***
+                _logger.LogInformation($"[DEBUG] IsWindowTrulyVisible: Created window region for {hWnd}.");
+
 
                 IntPtr visibleRegion = GetVisibleRegion(hWnd);
                 if (visibleRegion == IntPtr.Zero)
                 {
                     DeleteObject(windowRegion);
+                    _logger.LogInformation($"[DEBUG] IsWindowTrulyVisible: GetVisibleRegion returned Zero for {hWnd}.");
                     return false;
                 }
+                // *** DEBUG LOG ***
+                _logger.LogInformation($"[DEBUG] IsWindowTrulyVisible: Obtained visible region for {hWnd}.");
+
 
                 int windowArea = GetRegionArea(windowRegion);
                 int visibleArea = GetRegionArea(visibleRegion);
@@ -458,10 +519,14 @@ namespace ActivityTrackerService
 
                 if (windowArea <= 0)
                 {
+                    _logger.LogInformation($"[DEBUG] IsWindowTrulyVisible: Window area is zero or less for {hWnd}.");
                     return false;
                 }
 
                 double visiblePercentage = (double)visibleArea / windowArea * 100;
+                // *** DEBUG LOG ***
+                _logger.LogInformation($"[DEBUG] IsWindowTrulyVisible: Window {hWnd} - Area: {windowArea}, Visible Area: {visibleArea}, Visible %: {visiblePercentage:F2}");
+
                 return visiblePercentage >= 30;
             }
             catch (Exception ex)
@@ -476,25 +541,26 @@ namespace ActivityTrackerService
         {
             try
             {
-                // Retrieve the MonitorInfo object from the GCHandle
                 GCHandle handle = GCHandle.FromIntPtr(dwData);
                 MonitorInfo monitorInfo = (MonitorInfo)handle.Target;
 
-                // Marshal the monitor rectangle
                 RECT monitorRect = Marshal.PtrToStructure<RECT>(lprcMonitor);
                 RECT intersection = new RECT();
 
-                // Check if the window intersects with this monitor
-                if (IntersectRect(out intersection, ref monitorRect, ref monitorInfo.WindowRect))
+                bool intersects = IntersectRect(out intersection, ref monitorRect, ref monitorInfo.WindowRect);
+                // _logger.LogInformation($"[DEBUG] MonitorEnumProc: Intersects={intersects} for monitor {hMonitor} and window rect {monitorInfo.WindowRect.Left},{monitorInfo.WindowRect.Top}"); // Uncomment if needed, can be chatty
+
+                if (intersects)
                 {
                     monitorInfo.IsWindowOnAnyMonitor = true;
-                    return false; // Stop enumeration - we found an intersection
+                    return false; // Stop enumeration
                 }
 
                 return true; // Continue enumeration
             }
-            catch
+            catch (Exception ex)
             {
+                // _logger.LogError(ex, $"[DEBUG] Error in MonitorEnumProc."); // Uncomment if needed
                 return false; // Stop enumeration on error
             }
         }
@@ -507,11 +573,14 @@ namespace ActivityTrackerService
 
         private IntPtr GetVisibleRegion(IntPtr hWnd)
         {
+            // *** DEBUG LOG ***
+            _logger.LogInformation($"[DEBUG] Entering GetVisibleRegion for handle: {hWnd}");
             try
             {
                 RECT windowRect = new RECT();
                 if (!GetWindowRect(hWnd, out windowRect))
                 {
+                    _logger.LogInformation($"[DEBUG] GetVisibleRegion: GetWindowRect failed for {hWnd}.");
                     return IntPtr.Zero;
                 }
 
@@ -521,11 +590,13 @@ namespace ActivityTrackerService
 
                 if (regionHandle == IntPtr.Zero)
                 {
+                    _logger.LogInformation($"[DEBUG] GetVisibleRegion: CreateRectRgn failed for {hWnd}.");
                     return IntPtr.Zero;
                 }
 
                 IntPtr hParentWnd = GetAncestor(hWnd, GetAncestorFlags.GA_PARENT);
                 IntPtr hChildWnd = hWnd;
+                int overlayCount = 0; // For debug logging
 
                 while (hChildWnd != IntPtr.Zero && !IsDesktopWindow(hChildWnd))
                 {
@@ -553,6 +624,7 @@ namespace ActivityTrackerService
                                 {
                                     CombineRgn(regionHandle, regionHandle, topWndRgn, CombineRgnStyles.RGN_DIFF);
                                     DeleteObject(topWndRgn);
+                                    overlayCount++; // Increment count for debug
                                 }
                             }
                         }
@@ -563,6 +635,8 @@ namespace ActivityTrackerService
                     hChildWnd = hParentWnd;
                     hParentWnd = GetAncestor(hParentWnd, GetAncestorFlags.GA_PARENT);
                 }
+                // *** DEBUG LOG ***
+                _logger.LogInformation($"[DEBUG] GetVisibleRegion for {hWnd} completed. Overlapping windows processed: {overlayCount}");
 
                 return regionHandle;
             }
@@ -578,6 +652,7 @@ namespace ActivityTrackerService
             uint dataSize = GetRegionData(region, 0, IntPtr.Zero);
             if (dataSize <= 0)
             {
+                _logger.LogInformation($"[DEBUG] GetRegionArea: dataSize is zero or less for region {region}.");
                 return 0;
             }
 
@@ -597,7 +672,8 @@ namespace ActivityTrackerService
 
                     area += (rect.Right - rect.Left) * (rect.Bottom - rect.Top);
                 }
-
+                // *** DEBUG LOG ***
+                _logger.LogInformation($"[DEBUG] GetRegionArea: Region {region} has {rectCount} rectangles, total area: {area}.");
                 return area;
             }
             finally
@@ -608,10 +684,11 @@ namespace ActivityTrackerService
 
         private bool IsDesktopWindow(IntPtr hWnd)
         {
-            return hWnd == GetDesktopWindow() || hWnd == GetShellWindow();
+            bool isDesktop = hWnd == GetDesktopWindow() || hWnd == GetShellWindow();
+            // _logger.LogInformation($"[DEBUG] IsDesktopWindow: {hWnd} is desktop? {isDesktop}"); // Can be very chatty
+            return isDesktop;
         }
 
-        // Define the delegate type for EnumDisplayMonitors callback
         public delegate bool MonitorEnumProcDelegate(IntPtr hMonitor, IntPtr hdcMonitor, IntPtr lprcMonitor, IntPtr dwData);
 
         // Windows API P/Invoke declarations
@@ -733,7 +810,10 @@ namespace ActivityTrackerService
         static bool IsCloaked(IntPtr hWnd)
         {
             int isCloaked = 0;
-            return DwmGetWindowAttribute(hWnd, DWMWA_CLOAKED, out isCloaked, sizeof(int)) == 0 && isCloaked != 0;
+            // *** DEBUG LOG ***
+            int result = DwmGetWindowAttribute(hWnd, DWMWA_CLOAKED, out isCloaked, sizeof(int));
+            // _logger.LogInformation($"[DEBUG] IsCloaked for {hWnd}: Result={result}, IsCloakedValue={isCloaked}"); // Uncomment if too chatty
+            return result == 0 && isCloaked != 0;
         }
     }
 }
