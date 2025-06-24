@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MyActivityTrackerService")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5b3a2a413b2e810a7edd1e38303f2c77bf8da50b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8838827dc02aa93c644f6090e2b52448de06fb52")]
 [assembly: System.Reflection.AssemblyProductAttribute("MyActivityTrackerService")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MyActivityTrackerService")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

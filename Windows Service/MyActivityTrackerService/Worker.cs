@@ -16,8 +16,8 @@ namespace ActivityTrackerService
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
-        // IMPORTANT: Update this line with your actual SQL Server Login username and password
-       private static readonly string ConnectionString = "Server=.;Database=TimeTrackerDB;Integrated Security=True;TrustServerCertificate=True;";
+        // IMPORTANT: Updated to use Windows Authentication for local development
+        private static readonly string ConnectionString = "Server=.;Database=TimeTrackerDB;Integrated Security=True;TrustServerCertificate=True;";
         private string _lastActiveWindow = "";
 
         public Worker(ILogger<Worker> logger)
@@ -258,8 +258,8 @@ namespace ActivityTrackerService
                     var command = connection.CreateCommand();
                     command.CommandText =
                     @"
-                    INSERT INTO ActivityLog (Timestamp, ProcessName, WindowTitle, MemoryUsageMB, CpuUsage, ProcessAudioLevel, IsActive, IsCloaked)
-                    VALUES (@Timestamp, @ProcessName, @WindowTitle, @MemoryUsageMB, @CpuUsage, @ProcessAudioLevel, @IsActive, @IsCloaked);
+                    INSERT INTO ActivityLog (Timestamp, ProcessName, WindowTitle, MemoryUsageMB, CpuUsagePercent, AudioLevel, IsActive, IsCloaked)
+                    VALUES (@Timestamp, @ProcessName, @WindowTitle, @MemoryUsageMB, @CpuUsage, @AudioLevel, @IsActive, @IsCloaked);
                     ";
 
                     command.Parameters.AddWithValue("@Timestamp", timestamp);
@@ -267,7 +267,7 @@ namespace ActivityTrackerService
                     command.Parameters.AddWithValue("@WindowTitle", (object)windowTitle ?? DBNull.Value);
                     command.Parameters.AddWithValue("@MemoryUsageMB", memoryUsage);
                     command.Parameters.AddWithValue("@CpuUsage", cpuUsage);
-                    command.Parameters.AddWithValue("@ProcessAudioLevel", audioLevel);
+                    command.Parameters.AddWithValue("@AudioLevel", audioLevel); // Corrected parameter name
                     command.Parameters.AddWithValue("@IsActive", isActive);
                     command.Parameters.AddWithValue("@IsCloaked", isCloaked);
 
