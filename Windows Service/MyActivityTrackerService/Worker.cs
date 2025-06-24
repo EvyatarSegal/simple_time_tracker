@@ -17,7 +17,7 @@ namespace ActivityTrackerService
     {
         private readonly ILogger<Worker> _logger;
         // IMPORTANT: Update this line with your actual SQL Server Login username and password
-        private static readonly string ConnectionString = "Server=(localdb)\\MSSQLLocalDB;Database=TimeTrackerDB;User ID=ActivityTrackerAppUser;Password=0542;TrustServerCertificate=True;";
+       private static readonly string ConnectionString = "Server=.;Database=TimeTrackerDB;Integrated Security=True;TrustServerCertificate=True;";
         private string _lastActiveWindow = "";
 
         public Worker(ILogger<Worker> logger)
