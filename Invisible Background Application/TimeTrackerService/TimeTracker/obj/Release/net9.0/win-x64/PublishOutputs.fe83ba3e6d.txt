@@ -1,0 +1,2 @@
+D:\Users\evyat\Documents\Github\simple_time_tracker\Invisible Background Application\TimeTrackerService\TimeTracker\bin\Release\net9.0\win-x64\publish\TimeTracker.pdb
+D:\Users\evyat\Documents\Github\simple_time_tracker\Invisible Background Application\TimeTrackerService\TimeTracker\bin\Release\net9.0\win-x64\publish\TimeTracker.exe

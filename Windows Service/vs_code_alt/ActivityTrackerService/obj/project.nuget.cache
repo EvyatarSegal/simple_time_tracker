@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "i8IBzypLPl4=",
+  "dgSpecHash": "/ZT3Kmgokqo=",
   "success": true,
   "projectFilePath": "D:\\Users\\evyat\\Documents\\Github\\simple_time_tracker\\Windows Service\\vs_code_alt\\ActivityTrackerService\\ActivityTrackerService.csproj",
   "expectedPackageFiles": [
@@ -49,6 +49,7 @@
     "C:\\Users\\evyat\\.nuget\\packages\\microsoft.identitymodel.protocols\\7.5.0\\microsoft.identitymodel.protocols.7.5.0.nupkg.sha512",
     "C:\\Users\\evyat\\.nuget\\packages\\microsoft.identitymodel.protocols.openidconnect\\7.5.0\\microsoft.identitymodel.protocols.openidconnect.7.5.0.nupkg.sha512",
     "C:\\Users\\evyat\\.nuget\\packages\\microsoft.identitymodel.tokens\\7.5.0\\microsoft.identitymodel.tokens.7.5.0.nupkg.sha512",
+    "C:\\Users\\evyat\\.nuget\\packages\\microsoft.net.illink.tasks\\9.0.5\\microsoft.net.illink.tasks.9.0.5.nupkg.sha512",
     "C:\\Users\\evyat\\.nuget\\packages\\microsoft.netcore.platforms\\5.0.0\\microsoft.netcore.platforms.5.0.0.nupkg.sha512",
     "C:\\Users\\evyat\\.nuget\\packages\\microsoft.sqlserver.server\\1.0.0\\microsoft.sqlserver.server.1.0.0.nupkg.sha512",
     "C:\\Users\\evyat\\.nuget\\packages\\microsoft.win32.registry\\5.0.0\\microsoft.win32.registry.5.0.0.nupkg.sha512",
@@ -92,7 +93,10 @@
     "C:\\Users\\evyat\\.nuget\\packages\\vanara.pinvoke.gdi32\\4.1.6\\vanara.pinvoke.gdi32.4.1.6.nupkg.sha512",
     "C:\\Users\\evyat\\.nuget\\packages\\vanara.pinvoke.kernel32\\4.1.6\\vanara.pinvoke.kernel32.4.1.6.nupkg.sha512",
     "C:\\Users\\evyat\\.nuget\\packages\\vanara.pinvoke.shared\\4.1.6\\vanara.pinvoke.shared.4.1.6.nupkg.sha512",
-    "C:\\Users\\evyat\\.nuget\\packages\\vanara.pinvoke.user32\\4.1.6\\vanara.pinvoke.user32.4.1.6.nupkg.sha512"
+    "C:\\Users\\evyat\\.nuget\\packages\\vanara.pinvoke.user32\\4.1.6\\vanara.pinvoke.user32.4.1.6.nupkg.sha512",
+    "C:\\Users\\evyat\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x64\\9.0.5\\microsoft.netcore.app.runtime.win-x64.9.0.5.nupkg.sha512",
+    "C:\\Users\\evyat\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x64\\9.0.5\\microsoft.windowsdesktop.app.runtime.win-x64.9.0.5.nupkg.sha512",
+    "C:\\Users\\evyat\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-x64\\9.0.5\\microsoft.aspnetcore.app.runtime.win-x64.9.0.5.nupkg.sha512"
   ],
   "logs": []
 }

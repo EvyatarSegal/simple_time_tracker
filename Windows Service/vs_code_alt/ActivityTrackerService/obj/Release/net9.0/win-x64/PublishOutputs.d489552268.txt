@@ -1,0 +1,6 @@
+D:\Users\evyat\Documents\Github\simple_time_tracker\Windows Service\vs_code_alt\ActivityTrackerService\bin\Release\net9.0\win-x64\publish\appsettings.Development.json
+D:\Users\evyat\Documents\Github\simple_time_tracker\Windows Service\vs_code_alt\ActivityTrackerService\bin\Release\net9.0\win-x64\publish\appsettings.json
+D:\Users\evyat\Documents\Github\simple_time_tracker\Windows Service\vs_code_alt\ActivityTrackerService\bin\Release\net9.0\win-x64\publish\ActivityTrackerService.pdb
+D:\Users\evyat\Documents\Github\simple_time_tracker\Windows Service\vs_code_alt\ActivityTrackerService\bin\Release\net9.0\win-x64\publish\aspnetcorev2_inprocess.dll
+D:\Users\evyat\Documents\Github\simple_time_tracker\Windows Service\vs_code_alt\ActivityTrackerService\bin\Release\net9.0\win-x64\publish\Microsoft.Data.SqlClient.SNI.dll
+D:\Users\evyat\Documents\Github\simple_time_tracker\Windows Service\vs_code_alt\ActivityTrackerService\bin\Release\net9.0\win-x64\publish\ActivityTrackerService.exe
