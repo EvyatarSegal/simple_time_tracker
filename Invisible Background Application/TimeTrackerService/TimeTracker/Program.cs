@@ -48,28 +48,32 @@ class Program
         await Task.WhenAll(windowTrackingTask, resourceMonitoringTask);
     }
 
-    private static void AddToStartup()
+private static void AddToStartup()
+{
+    try
     {
-        try
+        using (RegistryKey key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true))
         {
-            using (RegistryKey key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true))
+            // RECOMMENDED CHANGE: Use Environment.ProcessPath to get the executable's full path
+            string appPath = $"\"{Environment.ProcessPath}\"";
+            
+            // For debugging, you can add this line to your log:
+            System.IO.File.AppendAllText("TimeTrackerError.log", $"{DateTime.Now}: Attempting to add to startup with path: {appPath}\n"); 
+
+            string currentValue = key.GetValue("TimeTracker") as string;
+            
+            if (currentValue != appPath)
             {
-                string appPath = $"\"{System.Reflection.Assembly.GetExecutingAssembly().Location}\"";
-                string currentValue = key.GetValue("TimeTracker") as string;
-                
-                if (currentValue != appPath)
-                {
-                    key.SetValue("TimeTracker", appPath);
-                    System.IO.File.AppendAllText("TimeTrackerError.log", $"{DateTime.Now}: Added to startup registry\n");
-                }
+                key.SetValue("TimeTracker", appPath);
+                System.IO.File.AppendAllText("TimeTrackerError.log", $"{DateTime.Now}: Added to startup registry\n");
             }
         }
-        catch (Exception ex)
-        {
-            System.IO.File.AppendAllText("TimeTrackerError.log", $"{DateTime.Now}: Failed to add to startup - {ex}\n");
-        }
     }
-
+    catch (Exception ex)
+    {
+        System.IO.File.AppendAllText("TimeTrackerError.log", $"{DateTime.Now}: Failed to add to startup - {ex}\n");
+    }
+}
     private static async Task StartActiveWindowTracking(CancellationToken token)
     {
         try
