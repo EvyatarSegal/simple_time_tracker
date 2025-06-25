@@ -21,8 +21,8 @@ class Program
     static async Task Main(string[] args)
     {
         // Hide the console window immediately
-        var handle = GetConsoleWindow();
-        ShowWindow(handle, SW_HIDE);
+        //var handle = GetConsoleWindow();
+        //ShowWindow(handle, SW_HIDE);
 
         // Register to run at startup (only if not already registered)
         AddToStartup();
