@@ -111,7 +111,8 @@ class Program
             cpuUsagePercentage,
             audioLevel,
             isActive,
-            isCloaked: IsCloaked(hwnd) // Check cloaked status for the window
+            isCloaked: IsCloaked(hwnd), // Check cloaked status for the window
+            isVisible
         );
 
         Console.WriteLine("###############################");
@@ -230,6 +231,7 @@ class Program
                 usage.CpuUsagePercentage,
                 usage.AudioLevel,
                 usage.IsActive,
+                usage.IsCloaked,
                 usage.IsVisible
             );
 
@@ -248,7 +250,8 @@ class Program
         double cpuUsage,
         int audioLevel,
         bool isActive,
-        bool isCloaked) // Note: isVisible from LogActiveWindow and IsCloaked from CheckResourceUsage are combined here
+        bool isCloaked,
+        bool isVisible) // Note: isVisible from LogActiveWindow and IsCloaked from CheckResourceUsage are combined here
     {
         try
         {
@@ -259,8 +262,8 @@ class Program
                 var command = connection.CreateCommand();
                 command.CommandText =
                 @"
-                INSERT INTO ActivityLog (Timestamp, ProcessName, WindowTitle, MemoryUsageMB, CpuUsage, ProcessAudioLevel, IsActive, IsCloaked)
-                VALUES (@Timestamp, @ProcessName, @WindowTitle, @MemoryUsageMB, @CpuUsage, @ProcessAudioLevel, @IsActive, @IsCloaked);
+                INSERT INTO ActivityLog (Timestamp, ProcessName, WindowTitle, MemoryUsageMB, CpuUsage, ProcessAudioLevel, IsActive, IsCloaked, IsVisible)
+                VALUES (@Timestamp, @ProcessName, @WindowTitle, @MemoryUsageMB, @CpuUsage, @ProcessAudioLevel, @IsActive, @IsCloaked, @IsVisible);
                 ";
 
                 command.Parameters.AddWithValue("@Timestamp", timestamp);
@@ -271,6 +274,7 @@ class Program
                 command.Parameters.AddWithValue("@ProcessAudioLevel", audioLevel);
                 command.Parameters.AddWithValue("@IsActive", isActive);
                 command.Parameters.AddWithValue("@IsCloaked", isCloaked);
+                command.Parameters.AddWithValue("@IsVisible", isVisible);
 
                 await command.ExecuteNonQueryAsync();
             }
@@ -296,6 +300,7 @@ class Program
         public float CpuUsagePercentage { get; set; }
         public int AudioLevel { get; set; } = 0; // Binary flag: 1 = playing audio, 0 = not playing
         public bool IsActive { get; set; }
+        public bool IsCloaked { get; set; }
         public bool IsVisible { get; set; } // Renamed from IsCloaked in previous context for clarity
     }
 
